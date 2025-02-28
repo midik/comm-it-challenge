@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Build service for service-a
+  service-a-build:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: >
+      sh -c "cd /app && 
+             apk add --no-cache python3 build-base &&
+             cd /app/apps/service-a &&
+             npm install --legacy-peer-deps &&
+             npm run build"
+
+  # Build service for service-b
+  service-b-build:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: >
+      sh -c "cd /app && 
+             apk add --no-cache python3 build-base &&
+             cd /app/apps/service-b &&
+             npm install --legacy-peer-deps &&
+             npm run build"

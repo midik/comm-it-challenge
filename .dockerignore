@@ -1,0 +1,35 @@
+# Node.js dependencies and build artifacts
+node_modules
+**/node_modules
+**/dist
+**/build
+**/coverage
+
+# Environment and configuration files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Git and development files
+.git
+.github
+.gitignore
+**/.git
+**/.gitignore
+**/.vscode
+**/.idea
+*.md
+\!README.md
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Temporary and log files
+**/*.log
+**/npm-debug.log*
+**/logs
+**/.DS_Store
+**/Thumbs.db
