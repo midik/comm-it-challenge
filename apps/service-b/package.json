@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && npm run copy-mocks",
+    "copy-mocks": "mkdir -p dist/apps/service-b/src/reports/mocks && cp src/reports/mocks/mock-chart.ts dist/apps/service-b/src/reports/mocks/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/apps/service-b/src/main.js",
     "start:dev": "nest start --watch",
