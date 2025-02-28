@@ -18,6 +18,8 @@ services:
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
+      - CANVAS_PREBUILT=1
+      - npm_config_build_from_source=false
     volumes:
       - service_a_data:/app/data
       - service_a_uploads:/app/uploads
@@ -41,6 +43,8 @@ services:
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
+      - CANVAS_PREBUILT=1
+      - npm_config_build_from_source=false
     volumes:
       - service_b_reports:/app/reports
     networks:

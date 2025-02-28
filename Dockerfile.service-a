@@ -13,7 +13,8 @@ RUN apk add --no-cache \
     pixman-dev \
     pangomm-dev \
     libjpeg-turbo-dev \
-    freetype-dev
+    freetype-dev \
+    python3
 
 # Copy package.json files
 COPY package*.json ./
@@ -21,6 +22,7 @@ COPY apps/service-a/package*.json ./apps/service-a/
 COPY libs/common/package*.json ./libs/common/
 
 # Install dependencies
+ENV CANVAS_PREBUILT=1
 RUN npm install --legacy-peer-deps
 
 # Copy source code
@@ -43,15 +45,18 @@ RUN apk add --no-cache \
     pixman \
     libjpeg-turbo \
     freetype \
-    fontconfig
+    fontconfig \
+    python3
 
-# Copy package.json files
-COPY package*.json ./
+# Copy package.json files (use the production version)
+COPY production-package.json ./package.json
 COPY apps/service-a/package*.json ./apps/service-a/
 COPY libs/common/package*.json ./libs/common/
 
 # Install production dependencies only
-RUN npm install --production --legacy-peer-deps
+ENV CANVAS_PREBUILT=1
+ENV npm_config_build_from_source=false
+RUN npm install --production --legacy-peer-deps --ignore-scripts
 
 # Copy the build output
 COPY --from=build /app/apps/service-a/dist ./apps/service-a/dist
