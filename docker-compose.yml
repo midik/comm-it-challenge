@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.service-a
+    image: comm-it/service-a:latest
     ports:
       - "3000:3000"
     depends_on:
@@ -18,18 +19,18 @@ services:
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
-      - CANVAS_PREBUILT=1
-      - npm_config_build_from_source=false
     volumes:
       - service_a_data:/app/data
       - service_a_uploads:/app/uploads
     networks:
       - microservices-network
+    restart: unless-stopped
 
   service-b:
     build:
       context: .
       dockerfile: Dockerfile.service-b
+    image: comm-it/service-b:latest
     ports:
       - "3001:3001"
     depends_on:
@@ -43,12 +44,11 @@ services:
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
-      - CANVAS_PREBUILT=1
-      - npm_config_build_from_source=false
     volumes:
       - service_b_reports:/app/reports
     networks:
       - microservices-network
+    restart: unless-stopped
 
   mongodb:
     image: mongo:latest
@@ -58,6 +58,7 @@ services:
       - mongodb_data:/data/db
     networks:
       - microservices-network
+    restart: unless-stopped
 
   redis:
     image: redislabs/redismod:latest
@@ -67,6 +68,7 @@ services:
       - redis_data:/data
     networks:
       - microservices-network
+    restart: unless-stopped
 
   mosquitto:
     image: eclipse-mosquitto:latest
@@ -79,6 +81,7 @@ services:
       - ./mosquitto/log:/mosquitto/log
     networks:
       - microservices-network
+    restart: unless-stopped
 
 networks:
   microservices-network:
@@ -90,4 +93,3 @@ volumes:
   service_a_data:
   service_a_uploads:
   service_b_reports:
-  mosquitto_data:

@@ -1,64 +1,55 @@
-# Stage 1: Build service-a
-FROM node:20-alpine AS builder
+# Build stage for JS files only
+FROM node:20-alpine AS js-builder
 
 WORKDIR /app
 
-# Install basic dependencies
-RUN apk add --no-cache python3 build-base
+# Install basic build tools
+RUN apk add --no-cache python3 make g++
 
-# Copy package.json files
+# Copy only package files first for better caching
 COPY package*.json ./
-COPY apps/service-a/package*.json ./apps/service-a/
 COPY libs/common/package*.json ./libs/common/
+COPY apps/service-a/package*.json ./apps/service-a/
 
-# Install dependencies
-ENV CANVAS_PREBUILT=1
-ENV npm_config_canvas_binary_host_mirror=https://github.com/Automattic/node-canvas/releases/download/
-ENV npm_config_build_from_source=false
-RUN npm install --legacy-peer-deps --no-optional
+# Install TypeScript and required dependencies only
+RUN npm install --no-package-lock typescript @types/node
 
-# Copy source code
-COPY libs/common ./libs/common
-COPY apps/service-a ./apps/service-a
+# Copy source files
+COPY apps/service-a/tsconfig*.json ./apps/service-a/
+COPY libs/common/tsconfig.json ./libs/common/
+COPY libs/common/src ./libs/common/src
+COPY apps/service-a/src ./apps/service-a/src
 
-# Compile TypeScript
+# Compile TypeScript to JavaScript
 RUN npx tsc -p apps/service-a/tsconfig.json
 
-# Stage 2: Production image
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apk add --no-cache \
-    cairo \
-    pango \
-    jpeg \
-    giflib \
-    pixman \
-    fontconfig \
-    freetype
+# Create directories for data and uploads
+RUN mkdir -p data uploads
 
-# Copy package.json files
-COPY production-package.json ./package.json
-COPY apps/service-a/package*.json ./apps/service-a/
-COPY libs/common/package*.json ./libs/common/
+# Copy only the compiled JavaScript
+COPY --from=js-builder /app/apps/service-a/dist ./apps/service-a/dist
+COPY --from=js-builder /app/libs/common/dist ./libs/common/dist
 
-# Install production dependencies
-ENV NODE_ENV=production
-ENV CANVAS_PREBUILT=1
-ENV npm_config_build_from_source=false
-RUN npm install --production --legacy-peer-deps --no-optional --ignore-scripts
+# Copy minimal package.json files (create simplified versions inline)
+RUN echo '{"name":"comm-it","dependencies":{"@nestjs/common":"^11.0.0","@nestjs/core":"^11.0.0","@nestjs/platform-express":"^11.0.0","reflect-metadata":"^0.2.0","rxjs":"^7.8.1","mongodb":"^6.3.0","mqtt":"^5.3.5","redis":"^4.6.13","@nestjs/axios":"^3.0.0","axios":"^1.6.0"}}' > package.json && \
+    echo '{"name":"service-a","dependencies":{"@nestjs/common":"^11.0.0","@nestjs/core":"^11.0.0","@nestjs/platform-express":"^11.0.0","reflect-metadata":"^0.2.0","rxjs":"^7.8.1"}}' > apps/service-a/package.json && \
+    mkdir -p libs/common && \
+    echo '{"name":"common"}' > libs/common/package.json
 
-# Copy compiled JavaScript from builder stage
-COPY --from=builder /app/libs/common/dist ./libs/common/dist
-COPY --from=builder /app/apps/service-a/dist ./apps/service-a/dist
+# Install only production dependencies with no optional packages and no scripts
+RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
+    npm install --production --no-optional --no-package-lock --no-audit --no-fund --ignore-scripts && \
+    # Remove node-gyp and any build tools to prevent compilation attempts
+    rm -rf /usr/local/lib/node_modules/npm/node_modules/node-gyp
 
-# Create directories
-RUN mkdir -p /app/data /app/uploads
-
-# Copy startup script
-COPY build.sh /app/build.sh
+# Copy startup script and make it executable
+COPY build.sh /app/
+RUN chmod +x /app/build.sh
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -67,7 +58,6 @@ ENV MONGODB_URI=mongodb://mongodb:27017
 ENV MONGODB_DB=microservices
 ENV REDIS_URI=redis://redis:6379
 ENV MQTT_URI=mqtt://mosquitto:1883
-ENV CANVAS_PREBUILT=1
 
 # Expose port
 EXPOSE 3000

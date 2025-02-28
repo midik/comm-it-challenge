@@ -1,6 +1,6 @@
-# Microservices Project
+# Comm-It: Microservices Project
 
-A robust microservices architecture using NestJS, MongoDB, Redis, and MQTT.
+A robust microservices architecture using NestJS, MongoDB, Redis, and MQTT. This project demonstrates communication between microservices and data processing in a distributed system.
 
 ## Tech Stack
 
@@ -49,16 +49,46 @@ Each service exposes Swagger documentation at `/api`:
 
 ### Running the Application
 
+#### Option 1: Using the build script (recommended)
+
 1. Clone the repository
-2. Start the services:
+2. Make the build script executable:
+
+```bash
+chmod +x build-and-start.sh
+```
+
+3. Build and run the services:
+
+```bash
+./build-and-start.sh
+```
+
+#### Option 2: Manual build and run
+
+1. Clone the repository
+2. Pre-build the TypeScript code:
+
+```bash
+docker-compose -f docker-compose-build.yml up service-a-build service-b-build
+```
+
+3. Build the Docker images:
+
+```bash
+docker-compose build
+```
+
+4. Start the services:
 
 ```bash
 docker-compose up
 ```
 
-3. Access the services:
-   - Service A: http://localhost:3000
-   - Service B: http://localhost:3001
+### Accessing the Services
+
+- Service A: http://localhost:3000
+- Service B: http://localhost:3001
 
 ## Features
 
@@ -84,3 +114,109 @@ The project includes Docker configurations for both services along with their de
 - MongoDB for data storage
 - Redis for caching and time series
 - Mosquitto for MQTT messaging
+
+### Docker Build Process
+
+The Docker build process is structured in two stages:
+
+1. **Build Stage**: 
+   - Compiles TypeScript code
+   - Uses a build environment with development dependencies
+   - Creates mock implementations for native dependencies like canvas
+
+2. **Production Stage**:
+   - Uses a minimal runtime environment
+   - Contains only production dependencies
+   - Implements fallbacks for components with complex native dependencies
+
+### Docker Optimization
+
+To optimize the Docker build process, this project:
+
+1. Separates the TypeScript compilation from the runtime container
+2. Uses mock implementations for chart generation in production
+3. Minimizes dependencies in the production container
+4. Provides multiple fallback mechanisms for native modules
+5. Uses a custom startup script that works in various environments
+
+### Environment Configuration
+
+The Docker containers respect the following environment variables:
+
+- `NODE_ENV`: Set to "production" for the production environment
+- `PORT`: The port each service listens on
+- `MONGODB_URI`: MongoDB connection string
+- `MONGODB_DB`: MongoDB database name
+- `REDIS_URI`: Redis connection string
+- `MQTT_URI`: MQTT broker connection string
+- `CANVAS_PREBUILT`: Flag to use prebuilt canvas binaries
+
+You can customize these in the docker-compose.yml file.
+
+## Development
+
+### Service Development
+
+To develop individual services without Docker:
+
+1. Start dependencies using Docker Compose:
+
+```bash
+docker-compose up mongodb redis mosquitto
+```
+
+2. Install dependencies for the service you want to work on:
+
+```bash
+cd apps/service-a # or apps/service-b
+npm install
+```
+
+3. Run the service in development mode:
+
+```bash
+npm run start:dev # Watch mode
+```
+
+Or for debugging:
+
+```bash
+npm run start:debug # Debug mode
+```
+
+### Mock Implementation Notes
+
+When working in production mode or Docker environments, Chart.js functionality is replaced with a mock implementation due to its complex native dependencies. This mock provides a minimal transparent PNG image instead of rendered charts.
+
+For debugging or testing chart generation, you can use the development environment where the real Chart.js implementation is used.
+
+## Testing
+
+To run tests for a specific service:
+
+```bash
+cd apps/service-a # or apps/service-b
+npm run test
+```
+
+To run tests with coverage:
+
+```bash
+npm run test:cov
+```
+
+To run end-to-end tests:
+
+```bash
+npm run test:e2e
+```
+
+### Testing in Docker
+
+You can run tests inside the Docker container:
+
+```bash
+docker-compose exec service-a npm run test
+# or
+docker-compose exec service-b npm run test
+```

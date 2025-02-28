@@ -1,8 +1,6 @@
 # Node.js dependencies and build artifacts
 node_modules
 **/node_modules
-**/dist
-**/build
 **/coverage
 
 # Environment and configuration files
@@ -14,18 +12,13 @@ node_modules
 # Git and development files
 .git
 .github
-.gitignore
 **/.git
-**/.gitignore
 **/.vscode
 **/.idea
-*.md
-\!README.md
 
 # Docker files
-Dockerfile*
-docker-compose*
-.dockerignore
+docker-compose-build.yml
+build-and-start.sh
 
 # Temporary and log files
 **/*.log
