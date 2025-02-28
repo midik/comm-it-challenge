@@ -1,0 +1,28 @@
+{
+  "name": "@comm-it/common",
+  "version": "0.0.1",
+  "description": "Common modules for microservices",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/swagger": "^7.2.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "mongodb": "^6.3.0",
+    "mqtt": "^5.3.5",
+    "redis": "^4.6.13",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/swagger": "^7.2.0"
+  }
+}

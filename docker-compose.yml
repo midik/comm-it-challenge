@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  service-a:
+    build:
+      context: .
+      dockerfile: Dockerfile.service-a
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+      - redis
+      - mosquitto
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DB=microservices
+      - REDIS_URI=redis://redis:6379
+      - MQTT_URI=mqtt://mosquitto:1883
+    volumes:
+      - service_a_data:/app/data
+      - service_a_uploads:/app/uploads
+    networks:
+      - microservices-network
+
+  service-b:
+    build:
+      context: .
+      dockerfile: Dockerfile.service-b
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+      - redis
+      - mosquitto
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DB=microservices
+      - REDIS_URI=redis://redis:6379
+      - MQTT_URI=mqtt://mosquitto:1883
+    volumes:
+      - service_b_reports:/app/reports
+    networks:
+      - microservices-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservices-network
+
+  redis:
+    image: redislabs/redismod:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  service_a_data:
+  service_a_uploads:
+  service_b_reports:
+  mosquitto_data:

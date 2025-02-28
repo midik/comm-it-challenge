@@ -1,0 +1,51 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copy package.json files
+COPY package*.json ./
+COPY apps/service-b/package*.json ./apps/service-b/
+COPY libs/common/package*.json ./libs/common/
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY libs/common ./libs/common
+COPY apps/service-b ./apps/service-b
+
+# Build the application
+RUN npm run build:service-b
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package.json files
+COPY package*.json ./
+COPY apps/service-b/package*.json ./apps/service-b/
+COPY libs/common/package*.json ./libs/common/
+
+# Install production dependencies only
+RUN npm install --production
+
+# Copy the build output
+COPY --from=build /app/apps/service-b/dist ./apps/service-b/dist
+COPY --from=build /app/libs/common/dist ./libs/common/dist
+
+# Create necessary directories
+RUN mkdir -p reports
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV MONGODB_URI=mongodb://mongodb:27017
+ENV MONGODB_DB=microservices
+ENV REDIS_URI=redis://redis:6379
+ENV MQTT_URI=mqtt://mosquitto:1883
+
+# Expose the service port
+EXPOSE 3001
+
+# Start the service
+CMD ["node", "apps/service-b/dist/main.js"]
