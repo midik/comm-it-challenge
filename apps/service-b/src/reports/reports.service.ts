@@ -6,23 +6,59 @@ import { ApiLogFilterDto } from '../../../../libs/common/src/dto/api-log.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Conditionally import real or mock chart implementation
-let ChartJSNodeCanvas;
-try {
-  // Try to import the real chart.js implementation
-  ChartJSNodeCanvas = require('chartjs-node-canvas').ChartJSNodeCanvas;
-} catch (error) {
-  // Fall back to mock implementation in production
-  console.log('Using mock chart implementation in production');
-  const { MockChartJSNodeCanvas } = require('./mocks/mock-chart');
-  ChartJSNodeCanvas = MockChartJSNodeCanvas;
+// Create a type for Chart.js Node Canvas
+interface IChartJSNodeCanvas {
+  renderToBuffer(configuration: any): Promise<Buffer>;
+}
+
+// Declare the ChartCanvas variable with a type
+let ChartCanvas: any;
+
+// Import differently based on environment
+// In production this will use the mock implementation
+if (process.env.NODE_ENV === 'production') {
+  try {
+    const mockModule = require('./mocks/mock-chart');
+    ChartCanvas = mockModule.MockChartJSNodeCanvas;
+    console.log('Using mock chart implementation in production');
+  } catch (error) {
+    // Failsafe mock implementation if the file is missing
+    console.log('Using inline mock chart implementation');
+    class InlineMockChart {
+      constructor() {
+        console.log('Inline mock chart initialized');
+      }
+      async renderToBuffer() {
+        // Return a 1x1 transparent PNG
+        return Buffer.from([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+          0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+          0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+        ]);
+      }
+    }
+    ChartCanvas = InlineMockChart;
+  }
+} else {
+  // In development, try to use the real implementation
+  try {
+    const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+    ChartCanvas = ChartJSNodeCanvas;
+  } catch (error) {
+    console.log('ChartJS not available, using mock implementation');
+    const { MockChartJSNodeCanvas } = require('./mocks/mock-chart');
+    ChartCanvas = MockChartJSNodeCanvas;
+  }
 }
 
 @Injectable()
 export class ReportsService {
   private readonly logger = new Logger(ReportsService.name);
   private readonly reportsDir = path.join(process.cwd(), 'reports');
-  private readonly chartJSNodeCanvas = new ChartJSNodeCanvas({ 
+  private readonly chartJSNodeCanvas = new ChartCanvas({ 
     width: 800, 
     height: 400,
     backgroundColour: '#ffffff' 
