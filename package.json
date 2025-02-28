@@ -24,7 +24,9 @@
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
     "@nestjs/cli": "^11.0.5",
+    "@nestjs/common": "^11.0.11",
     "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.11",
     "@nestjs/platform-express": "^11.0.11",
     "@nestjs/swagger": "^7.2.0",
     "@types/uuid": "^10.0.0",
@@ -40,6 +42,8 @@
     "pdfkit": "^0.14.0",
     "pdfkit-table": "^0.1.99",
     "redis": "^4.6.13",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^11.1.0"
   }

@@ -71,13 +71,19 @@ export class SearchController {
     }
 
     try {
+      // Convert sort to appropriate format if needed
+      // For MongoDB, sort can be [key, direction] format
+      const formattedSort = sort ? 
+        Object.entries(sort).map(([key, value]) => [key, value > 0 ? 'asc' : 'desc']) : 
+        undefined;
+
       const result = await this.searchService.search(
         collection,
         query,
         {
           page: pagination.page,
           limit: pagination.limit,
-          sort,
+          sort: formattedSort as any,  // Type assertion to match service's expected type
           projection,
         },
       );

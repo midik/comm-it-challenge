@@ -10,7 +10,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       url: process.env.REDIS_URI || 'redis://localhost:6379' 
     });
 
-    this.client.on('error', (err) => console.error('Redis Client Error', err));
+    // In debug mode, log only the first few errors to avoid flooding the console
+    let errorCount = 0;
+    this.client.on('error', (err) => {
+      const isDebugMode = process.execArgv.some(arg => 
+        arg.includes('--inspect') || arg.includes('ts-node')
+      );
+
+      if (!isDebugMode || errorCount < 3) {
+        console.error('Redis Client Error', err);
+        errorCount++;
+        
+        if (isDebugMode && errorCount === 3) {
+          console.log('Suppressing further Redis connection errors in development mode...');
+        }
+      }
+    });
   }
 
   async onModuleInit() {
@@ -19,7 +34,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       console.log('Connected to Redis');
     } catch (error) {
       console.error('Failed to connect to Redis', error);
-      throw error;
+      
+      // In development mode, don't throw an error
+      const isDebugMode = process.execArgv.some(arg => 
+        arg.includes('--inspect') || arg.includes('ts-node')
+      );
+      
+      if (!isDebugMode) {
+        throw error;
+      } else {
+        console.log('Running in debug/development mode, continuing without Redis');
+      }
     }
   }
 
@@ -33,7 +58,24 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   getClient(): RedisClientType {
+    if (!this.client.isOpen) {
+      console.warn('Redis is not connected. Using mock client in development mode.');
+      return this.getMockClient();
+    }
     return this.client;
+  }
+
+  // Creates a mock client for development
+  private getMockClient() {
+    return {
+      isOpen: false,
+      isReady: false,
+      get: async () => null,
+      set: async () => 'OK',
+      del: async () => 0,
+      exists: async () => 0,
+      sendCommand: async () => [],
+    } as any;
   }
 
   // Helper method for TimeSeries operations
@@ -51,16 +93,32 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       }
     }
     
-    return this.client.sendCommand(args);
+    try {
+      return await this.client.sendCommand(args);
+    } catch (error) {
+      if (!this.client.isOpen) {
+        console.warn(`Mock tsCreate for ${key}`);
+        return 'OK';
+      }
+      throw error;
+    }
   }
 
   async tsAdd(key: string, timestamp: number | '*', value: number) {
-    return this.client.sendCommand([
-      'TS.ADD', 
-      key, 
-      timestamp === '*' ? '*' : timestamp.toString(), 
-      value.toString()
-    ]);
+    try {
+      return await this.client.sendCommand([
+        'TS.ADD', 
+        key, 
+        timestamp === '*' ? '*' : timestamp.toString(), 
+        value.toString()
+      ]);
+    } catch (error) {
+      if (!this.client.isOpen) {
+        console.warn(`Mock tsAdd for ${key}`);
+        return timestamp === '*' ? Date.now() : timestamp;
+      }
+      throw error;
+    }
   }
 
   async tsRange(key: string, fromTimestamp: number, toTimestamp: number, options: { count?: number, aggregation?: { type: string, timeBucket: number } } = {}) {
@@ -74,7 +132,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
     }
     
-    return this.client.sendCommand(args);
+    try {
+      return await this.client.sendCommand(args);
+    } catch (error) {
+      if (!this.client.isOpen) {
+        console.warn(`Mock tsRange for ${key}`);
+        return [];
+      }
+      throw error;
+    }
   }
 
   async tsMRange(fromTimestamp: number, toTimestamp: number, filter: string[], options: { 
@@ -99,6 +165,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     args.push('FILTER');
     filter.forEach(f => args.push(f));
     
-    return this.client.sendCommand(args);
+    try {
+      return await this.client.sendCommand(args);
+    } catch (error) {
+      if (!this.client.isOpen) {
+        console.warn(`Mock tsMRange for filters: ${filter.join(', ')}`);
+        // Return a mock response formatted like a time series with labels
+        return []; 
+      }
+      throw error;
+    }
   }
 }

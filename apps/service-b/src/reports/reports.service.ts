@@ -202,7 +202,7 @@ export class ReportsService {
       },
     };
     
-    return this.chartJSNodeCanvas.renderToBuffer(configuration);
+    return this.chartJSNodeCanvas.renderToBuffer(configuration as any);
   }
 
   private async generateTimeSeriesChart(series: any): Promise<Buffer> {
@@ -255,7 +255,7 @@ export class ReportsService {
       },
     };
     
-    return this.chartJSNodeCanvas.renderToBuffer(configuration);
+    return this.chartJSNodeCanvas.renderToBuffer(configuration as any);
   }
 
   private generateColors(count: number): string[] {

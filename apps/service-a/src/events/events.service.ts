@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MqttService } from '../../../../libs/common/src/mqtt';
 import { RedisService } from '../../../../libs/common/src/redis';
-import { EventDto } from '../../../../libs/common/src/dto';
+import { EventDto, EventType } from '../../../../libs/common/src/dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -16,10 +16,14 @@ export class EventsService {
 
   async recordEvent(eventData: Partial<EventDto>): Promise<EventDto> {
     try {
+      // Ensure event type is not undefined
+      const type = eventData.type || EventType.API_REQUEST;
+      
       const event: EventDto = {
         id: uuidv4(),
         timestamp: new Date(),
         service: 'service-a',
+        type, // Ensure type is always defined
         ...eventData,
       };
 

@@ -14,7 +14,7 @@ import { EventsModule } from './events/events.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-    }),
+    }) as any,
     DatabaseModule,
     RedisModule,
     MqttModule,

@@ -34,7 +34,7 @@ export class UploadController {
   @ApiResponse({ status: 500, description: 'Internal server error during processing' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any, // Fix the Express.Multer.File type issue
     @Body('collection') collection: string,
   ) {
     if (!file) {

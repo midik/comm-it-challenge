@@ -61,7 +61,23 @@ export class EventsService implements OnModuleInit {
   async getEventById(id: string): Promise<EventDto | null> {
     try {
       const collection = this.databaseService.getCollection(this.EVENTS_COLLECTION);
-      return await collection.findOne({ id }) as EventDto;
+      const result = await collection.findOne({ id });
+      
+      if (!result) {
+        return null;
+      }
+      
+      // Convert MongoDB document to EventDto
+      return {
+        id: result.id,
+        type: result.type,
+        timestamp: result.timestamp,
+        service: result.service,
+        request: result.request,
+        response: result.response,
+        executionTime: result.executionTime,
+        metadata: result.metadata
+      } as EventDto;
     } catch (error) {
       this.logger.error(`Failed to get event by ID: ${error.message}`);
       return null;

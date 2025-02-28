@@ -2,13 +2,26 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Install dependencies required for canvas
+RUN apk add --no-cache \
+    build-base \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
 # Copy package.json files
 COPY package*.json ./
 COPY apps/service-b/package*.json ./apps/service-b/
 COPY libs/common/package*.json ./libs/common/
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY libs/common ./libs/common
@@ -21,13 +34,24 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install dependencies required for canvas
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    giflib \
+    pixman \
+    libjpeg-turbo \
+    freetype \
+    fontconfig
+
 # Copy package.json files
 COPY package*.json ./
 COPY apps/service-b/package*.json ./apps/service-b/
 COPY libs/common/package*.json ./libs/common/
 
 # Install production dependencies only
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 
 # Copy the build output
 COPY --from=build /app/apps/service-b/dist ./apps/service-b/dist
@@ -48,4 +72,4 @@ ENV MQTT_URI=mqtt://mosquitto:1883
 EXPOSE 3001
 
 # Start the service
-CMD ["node", "apps/service-b/dist/main.js"]
+CMD ["node", "apps/service-b/dist/apps/service-b/src/main.js"]

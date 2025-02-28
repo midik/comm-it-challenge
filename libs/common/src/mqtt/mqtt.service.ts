@@ -82,7 +82,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         this.topicHandlers.set(topic, []);
       }
       
-      this.topicHandlers.get(topic).push(handler);
+      const handlers = this.topicHandlers.get(topic);
+      if (handlers) {
+        handlers.push(handler);
+      }
     });
   }
 

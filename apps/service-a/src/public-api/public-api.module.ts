@@ -6,10 +6,12 @@ import { EventsModule } from '../events/events.module';
 
 @Module({
   imports: [
-    HttpModule.register({
-      timeout: 30000,
-      maxRedirects: 5,
-    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 30000,
+        maxRedirects: 5,
+      }),
+    }) as any,
     EventsModule,
   ],
   controllers: [PublicApiController],

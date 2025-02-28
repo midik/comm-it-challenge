@@ -13,7 +13,7 @@ import { ReportsModule } from './reports/reports.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-    }),
+    }) as any,
     DatabaseModule,
     RedisModule,
     MqttModule,
