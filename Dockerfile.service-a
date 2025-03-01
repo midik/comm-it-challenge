@@ -6,8 +6,10 @@ WORKDIR /app
 # Install basic build tools
 RUN apk add --no-cache python3 make g++
 
-# Create package.json with all dependencies
-RUN echo '{"name":"comm-it","private":true,"dependencies":{"typescript":"5.7.3","@types/node":"22.10.7","@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5","class-transformer":"0.5.1","class-validator":"0.14.0","@nestjs/swagger":"7.2.0","tsconfig-paths":"4.2.0","exceljs":"4.4.0"}}' > package.json
+# Copy package.json files
+COPY package.json ./
+COPY apps/service-a/package.json ./apps/service-a/
+COPY libs/common/package.json ./libs/common/
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -17,26 +19,19 @@ FROM deps AS js-builder
 
 WORKDIR /app
 
-# Create minimal package files with only what's needed for TypeScript compilation
-RUN mkdir -p libs/common apps/service-a
-
-# Create package.json files with minimal TypeScript dependencies
-RUN echo '{"name":"common"}' > libs/common/package.json && \
-    echo '{"name":"service-a"}' > apps/service-a/package.json
-
 # Copy source files
 COPY apps/service-a/tsconfig*.json ./apps/service-a/
 COPY libs/common/tsconfig.json ./libs/common/
 COPY libs/common/src ./libs/common/src
 COPY apps/service-a/src ./apps/service-a/src
 
-# Create a modified tsconfig for build that doesn't fail on type errors
-RUN echo '{"extends": "./apps/service-a/tsconfig.json","compilerOptions": {"skipLibCheck": true,"skipDefaultLibCheck": true,"strictNullChecks": false,"noImplicitAny": false,"paths":{"@app/*":["./apps/service-a/src/*"],"@lib/common":["./libs/common/src"]}}}' > tsconfig.build.json
+# Use service's tsconfig for build
+COPY apps/service-a/tsconfig.json ./tsconfig.json
 
-# Compile TypeScript to JavaScript with lax type checking for build
-RUN npx tsc -p tsconfig.build.json --noEmit false || true
+# Compile TypeScript to JavaScript
+RUN npx tsc -p apps/service-a/tsconfig.build.json --noEmit false || true
 
-# Just create output directories if compilation fails
+# Create output directories in case compilation fails
 RUN mkdir -p apps/service-a/dist/apps/service-a/src libs/common/dist/libs/common/src
 
 # Production stage
@@ -51,31 +46,25 @@ RUN mkdir -p data uploads
 COPY --from=js-builder /app/apps/service-a/dist ./apps/service-a/dist
 COPY --from=js-builder /app/libs/common/dist ./libs/common/dist
 
-# Create consistent package.json files with exact versions
-RUN mkdir -p libs/common apps/service-a && \
-    echo '{"name":"comm-it","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","@nestjs/swagger":"7.2.0","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5","class-transformer":"0.5.1","class-validator":"0.14.0","exceljs":"4.4.0"}}' > package.json && \
-    echo '{"name":"service-a","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","@nestjs/swagger":"7.2.0","reflect-metadata":"0.2.2","rxjs":"7.8.1","class-transformer":"0.5.1","class-validator":"0.14.0","exceljs":"4.4.0"}}' > apps/service-a/package.json && \
-    echo '{"name":"common","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","reflect-metadata":"0.2.2","rxjs":"7.8.1"}}' > libs/common/package.json
+# Copy package.json files for production
+COPY package.json ./
+COPY apps/service-a/package.json ./apps/service-a/
+COPY libs/common/package.json ./libs/common/
 
-# Install production dependencies with force to bypass peer dependency issues
+# Install production dependencies
 RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
-    npm install --production --no-optional --no-package-lock --no-audit --no-fund --ignore-scripts --force && \
-    # Remove node-gyp and any build tools to prevent compilation attempts
-    rm -rf /usr/local/lib/node_modules/npm/node_modules/node-gyp
+    npm install --production --no-optional --no-package-lock --force
 
-# Set environment variables
+# Set environment variables for service-a
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV MONGODB_URI=mongodb://mongodb:27017/microservices
 ENV MONGODB_DB=microservices
 ENV REDIS_URI=redis://redis:6379
 ENV MQTT_URI=mqtt://mosquitto:1883
-ENV MONGODB_CONNECT_TIMEOUT=30000
-ENV MONGODB_SOCKET_TIMEOUT=60000
-ENV MONGODB_SERVER_SELECTION_TIMEOUT=30000
 
 # Expose port
 EXPOSE 3000
 
 # Start service
-CMD ["sh", "-c", "cd /app && node apps/service-a/dist/apps/service-a/src/main.js"]
+CMD ["node", "apps/service-a/dist/apps/service-a/src/main.js"]
