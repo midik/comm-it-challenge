@@ -1,5 +1,5 @@
-import { Controller, Get, Query, Res, HttpException, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
 import { ApiLogFilterDto } from '../../../../libs/common/src/dto/api-log.dto';
 import { Response } from 'express';
@@ -17,7 +17,7 @@ export class ReportsController {
   async generateReport(@Query() filter: ApiLogFilterDto) {
     try {
       const filename = await this.reportsService.generatePDFReport(filter);
-      
+
       return {
         message: 'Report generated successfully',
         filename,

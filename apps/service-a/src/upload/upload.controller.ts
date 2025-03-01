@@ -1,8 +1,7 @@
-import { Controller, Post, UploadedFile, UseInterceptors, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UploadService } from './upload.service';
-import { Express } from 'express';
 
 @ApiTags('Upload')
 @Controller('upload')
@@ -47,7 +46,7 @@ export class UploadController {
 
     try {
       const result = await this.uploadService.parseAndInsertFile(file.filename, collection);
-      
+
       return {
         message: 'File processed successfully',
         filename: file.filename,

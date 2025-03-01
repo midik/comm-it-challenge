@@ -1,5 +1,5 @@
-import { Controller, Get, Query, Body, Post, HttpException, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SearchService } from './search.service';
 import { PaginationDto } from '../../../../libs/common/src/dto';
 
@@ -73,8 +73,8 @@ export class SearchController {
     try {
       // Convert sort to appropriate format if needed
       // For MongoDB, sort can be [key, direction] format
-      const formattedSort = sort ? 
-        Object.entries(sort).map(([key, value]) => [key, value > 0 ? 'asc' : 'desc']) : 
+      const formattedSort = sort ?
+        Object.entries(sort).map(([key, value]) => [key, value > 0 ? 'asc' : 'desc']) :
         undefined;
 
       const result = await this.searchService.search(

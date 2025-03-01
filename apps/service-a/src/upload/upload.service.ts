@@ -2,9 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ExcelJS from 'exceljs';
-import { DatabaseService } from '../../../../libs/common/src/database';
+import { DatabaseService, EventType } from '../../../../libs/common/src';
 import { EventsService } from '../events/events.service';
-import { EventType } from '../../../../libs/common/src/dto/event.dto';
 
 @Injectable()
 export class UploadService {
@@ -20,21 +19,21 @@ export class UploadService {
   async parseAndInsertFile(filename: string, collection: string): Promise<{ count: number, elapsedTime: number }> {
     const startTime = Date.now();
     const filePath = path.join(this.uploadDir, filename);
-    
+
     if (!fs.existsSync(filePath)) {
       throw new Error('File not found');
     }
-    
+
     await this.eventsService.recordEvent({
       type: EventType.FILE_PARSE,
       service: 'service-a',
       request: { filename, collection },
       timestamp: new Date(),
     });
-    
+
     let data: any[] = [];
     const extension = path.extname(filename).toLowerCase();
-    
+
     if (extension === '.json') {
       data = await this.parseJsonFile(filePath);
     } else if (['.xlsx', '.xls'].includes(extension)) {
@@ -42,10 +41,10 @@ export class UploadService {
     } else {
       throw new Error('Unsupported file format. Only JSON and Excel files are supported.');
     }
-    
+
     const insertedCount = await this.insertDataToMongo(data, collection);
     const elapsedTime = Date.now() - startTime;
-    
+
     await this.eventsService.recordEvent({
       type: EventType.FILE_UPLOAD,
       service: 'service-a',
@@ -54,7 +53,7 @@ export class UploadService {
       executionTime: elapsedTime,
       timestamp: new Date(),
     });
-    
+
     return { count: insertedCount, elapsedTime };
   }
 
@@ -62,7 +61,7 @@ export class UploadService {
     try {
       const fileContent = fs.readFileSync(filePath, 'utf8');
       const data = JSON.parse(fileContent);
-      
+
       // Handle different JSON structures
       if (Array.isArray(data)) {
         return data;
@@ -71,18 +70,18 @@ export class UploadService {
         if (data.data && Array.isArray(data.data)) {
           return data.data;
         }
-        
+
         // Check if the JSON has any property that is an array
         for (const key of Object.keys(data)) {
           if (Array.isArray(data[key])) {
             return data[key];
           }
         }
-        
+
         // If no arrays found, return the object as a single item array
         return [data];
       }
-      
+
       throw new Error('Invalid JSON structure');
     } catch (error) {
       this.logger.error(`Error parsing JSON file: ${error.message}`);
@@ -94,30 +93,30 @@ export class UploadService {
     try {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(filePath);
-      
+
       const worksheet = workbook.worksheets[0];
       const result: any[] = [];
-      
+
       // Get header row
       const headers: string[] = [];
       worksheet.getRow(1).eachCell((cell, colNumber) => {
         headers[colNumber - 1] = cell.value as string;
       });
-      
+
       // Process each row
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber > 1) { // Skip header row
           const rowData: Record<string, any> = {};
-          
+
           row.eachCell((cell, colNumber) => {
             const header = headers[colNumber - 1];
             rowData[header] = cell.value;
           });
-          
+
           result.push(rowData);
         }
       });
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Error parsing Excel file: ${error.message}`);
@@ -128,17 +127,17 @@ export class UploadService {
   private async insertDataToMongo(data: any[], collectionName: string): Promise<number> {
     try {
       const collection = this.databaseService.getCollection(collectionName);
-      
+
       // Create indexes for efficient searching
       await collection.createIndex({ _id: 1 });
-      
+
       // Determine fields to index based on the first document
       if (data.length > 0) {
         const sampleDoc = data[0];
         for (const key of Object.keys(sampleDoc)) {
           // Index fields that are likely to be searched
           if (
-            typeof sampleDoc[key] === 'string' || 
+            typeof sampleDoc[key] === 'string' ||
             typeof sampleDoc[key] === 'number' ||
             sampleDoc[key] instanceof Date
           ) {
@@ -146,17 +145,17 @@ export class UploadService {
           }
         }
       }
-      
+
       // Insert data in batches
       let insertedCount = 0;
       for (let i = 0; i < data.length; i += this.BATCH_SIZE) {
         const batch = data.slice(i, i + this.BATCH_SIZE);
         const result = await collection.insertMany(batch, { ordered: false });
         insertedCount += result.insertedCount;
-        
+
         this.logger.log(`Inserted batch ${i / this.BATCH_SIZE + 1}: ${result.insertedCount} documents`);
       }
-      
+
       this.logger.log(`Total inserted: ${insertedCount} documents into ${collectionName}`);
       return insertedCount;
     } catch (error) {

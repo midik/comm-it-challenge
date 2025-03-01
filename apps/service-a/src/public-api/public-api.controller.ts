@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PublicApiService } from './public-api.service';
