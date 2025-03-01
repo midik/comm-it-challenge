@@ -195,6 +195,7 @@ To run tests for a specific service:
 ```bash
 cd apps/service-a # or apps/service-b
 npm run test
+npm run test:e2e
 ```
 
 To run tests with coverage:
@@ -215,6 +216,8 @@ You can run tests inside the Docker container:
 
 ```bash
 docker-compose exec service-a npm run test
-# or
+docker-compose exec service-a npm run test:e2e
+
 docker-compose exec service-b npm run test
+docker-compose exec service-b npm run test:e2e
 ```

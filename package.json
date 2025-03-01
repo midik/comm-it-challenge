@@ -13,7 +13,9 @@
     "build:service-a": "cd apps/service-a && npm run build",
     "build:service-b": "cd apps/service-b && npm run build",
     "test:service-a": "cd apps/service-a && npm run test",
-    "test:service-b": "cd apps/service-b && npm run test"
+    "test:service-b": "cd apps/service-b && npm run test",
+    "test:e2e:service-a": "cd apps/service-a && npm run test:e2e",
+    "test:e2e:service-b": "cd apps/service-b && npm run test:e2e"
   },
   "keywords": [
     "nestjs",
