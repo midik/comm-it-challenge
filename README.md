@@ -1,16 +1,17 @@
-# Comm-It: Microservices Project
+# Description
 
-A robust microservices architecture using NestJS, MongoDB, Redis, and MQTT. This project demonstrates communication between microservices and data processing in a distributed system.
+A tiny microservices project built as a technical challenge for Comm-It.
 
 ## Tech Stack
 
-- **Backend Framework**: NestJS with TypeScript
-- **Database**: MongoDB
-- **Cache & Time Series**: Redis/RedisTimeSeries
-- **Message Broker**: Mosquitto (MQTT)
-- **Containerization**: Docker & Docker Compose
-- **API Documentation**: Swagger
-- **PDF Generation**: PDFKit
+- Node.js
+- NestJS / TypeScript
+- MongoDB
+- Redis
+- Mosquitto
+- Swagger
+- PDFKit / Chart.js / Canvas
+- Docker
 
 ## Project Structure
 
@@ -18,16 +19,19 @@ The project consists of two microservices:
 
 1. **Service A**:
    - Fetches data from external APIs
-   - Uploads and processes JSON/Excel files
+   - Uploads and processes the files
    - Provides search functionality
    - Publishes events to Service B
 
 2. **Service B**:
    - Logs events from Service A
+   - Provides queryable event logs
    - Provides time series analytics
    - Generates PDF reports with charts
 
 ## Shared Libraries
+
+Under the `libs` directory, you'll find shared libraries used by both services:
 
 - **Database**: MongoDB connection and utilities
 - **Redis**: Redis connection and TimeSeries utilities
@@ -48,6 +52,10 @@ Each service exposes Swagger documentation at `/api`:
 - Docker and Docker Compose
 
 ### Running the Application
+
+Build process consists of two stages using intermediate images: compiling TypeScript code and creating the production image. The final images are optimized for production use.
+
+There are two options to spin up the whole stack:
 
 #### Option 1: Using the build script (recommended)
 
@@ -172,23 +180,12 @@ cd apps/service-a # or apps/service-b
 npm install
 ```
 
-3. Run the service in development mode:
+3. Run the service in development mode, either:
 
 ```bash
 npm run start:dev # Watch mode
-```
-
-Or for debugging:
-
-```bash
 npm run start:debug # Debug mode
 ```
-
-### Mock Implementation Notes
-
-When working in production mode or Docker environments, Chart.js functionality is replaced with a mock implementation due to its complex native dependencies. This mock provides a minimal transparent PNG image instead of rendered charts.
-
-For debugging or testing chart generation, you can use the development environment where the real Chart.js implementation is used.
 
 ## Testing
 
