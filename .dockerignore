@@ -23,6 +23,5 @@ build-and-start.sh
 # Temporary and log files
 **/*.log
 **/npm-debug.log*
-**/logs
 **/.DS_Store
 **/Thumbs.db
