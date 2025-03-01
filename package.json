@@ -6,6 +6,10 @@
   "scripts": {
     "start:service-a": "cd apps/service-a && npm run start",
     "start:service-b": "cd apps/service-b && npm run start",
+    "dev:service-a": "cd apps/service-a && npm run start:dev",
+    "dev:service-b": "cd apps/service-b && npm run start:dev",
+    "debug:service-a": "cd apps/service-a && npm run start:debug",
+    "debug:service-b": "cd apps/service-b && npm run start:debug",
     "build:service-a": "cd apps/service-a && npm run build",
     "build:service-b": "cd apps/service-b && npm run build",
     "test:service-a": "cd apps/service-a && npm run test",
