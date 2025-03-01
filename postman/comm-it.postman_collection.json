@@ -1,0 +1,225 @@
+{
+	"info": {
+		"_postman_id": "df1fffd6-3de5-438f-af15-c07940abdbd5",
+		"name": "comm-it",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44026"
+	},
+	"item": [
+		{
+			"name": "fetch",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/public-api/fetch?url=https://ifconfig.co/json",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"public-api",
+						"fetch"
+					],
+					"query": [
+						{
+							"key": "url",
+							"value": "https://ifconfig.co/json"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/public-api/fetch?url=https://ifconfig.co/json",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"public-api",
+						"fetch"
+					],
+					"query": [
+						{
+							"key": "url",
+							"value": "https://ifconfig.co/json"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"value": "qwe",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/upload",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "search/collections",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/search/collections",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"search",
+						"collections"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "search",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "query",
+							"value": "{ country: { $ne: { \"France\" }}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/search?collection=test",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"search"
+					],
+					"query": [
+						{
+							"key": "collection",
+							"value": "test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/logs",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"logs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logs/timeseries",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url-2}}/logs/timeseries",
+					"host": [
+						"{{url-2}}"
+					],
+					"path": [
+						"logs",
+						"timeseries"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logs/distribution",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url-2}}/logs/timeseries",
+					"host": [
+						"{{url-2}}"
+					],
+					"path": [
+						"logs",
+						"timeseries"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reports/generate",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url-2}}/logs/timeseries",
+					"host": [
+						"{{url-2}}"
+					],
+					"path": [
+						"logs",
+						"timeseries"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reports/download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url-2}}/logs/timeseries",
+					"host": [
+						"{{url-2}}"
+					],
+					"path": [
+						"logs",
+						"timeseries"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
