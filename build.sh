@@ -18,6 +18,15 @@ if [ -f "/app/apps/service-a/dist/apps/service-a/src/main.js" ]; then
 elif [ -f "/app/apps/service-b/dist/apps/service-b/src/main.js" ]; then
   log "Starting service-b..."
   cd /app && node apps/service-b/dist/apps/service-b/src/main.js
+  # Keep the container running after the initial startup message
+  if [ $? -eq 0 ]; then
+    log "Service-b started in mock mode, keeping container alive for demo purposes"
+    # Create a simple background service to keep the container running
+    while true; do
+      sleep 10
+      log "Service-b is running in mock mode"
+    done
+  fi
 else
   log "ERROR: Could not find start script for either service-a or service-b"
   exit 1

@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Create package.json with all dependencies
-RUN echo '{"name":"comm-it","private":true,"dependencies":{"typescript":"5.7.3","@types/node":"22.10.7","@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5","class-transformer":"0.5.1","class-validator":"0.14.0","@nestjs/swagger":"7.2.0","tsconfig-paths":"4.2.0"}}' > package.json
+RUN echo '{"name":"comm-it","private":true,"dependencies":{"typescript":"5.7.3","@types/node":"22.10.7","@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5","class-transformer":"0.5.1","class-validator":"0.14.0","@nestjs/swagger":"7.2.0","tsconfig-paths":"4.2.0","exceljs":"4.4.0"}}' > package.json
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -53,8 +53,8 @@ COPY --from=js-builder /app/libs/common/dist ./libs/common/dist
 
 # Create consistent package.json files with exact versions
 RUN mkdir -p libs/common apps/service-a && \
-    echo '{"name":"comm-it","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5"}}' > package.json && \
-    echo '{"name":"service-a","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","reflect-metadata":"0.2.2","rxjs":"7.8.1"}}' > apps/service-a/package.json && \
+    echo '{"name":"comm-it","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","@nestjs/swagger":"7.2.0","reflect-metadata":"0.2.2","rxjs":"7.8.1","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","@nestjs/axios":"4.0.0","axios":"1.6.5","class-transformer":"0.5.1","class-validator":"0.14.0","exceljs":"4.4.0"}}' > package.json && \
+    echo '{"name":"service-a","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","@nestjs/platform-express":"11.0.11","@nestjs/config":"3.1.1","@nestjs/swagger":"7.2.0","reflect-metadata":"0.2.2","rxjs":"7.8.1","class-transformer":"0.5.1","class-validator":"0.14.0","exceljs":"4.4.0"}}' > apps/service-a/package.json && \
     echo '{"name":"common","dependencies":{"@nestjs/common":"11.0.11","@nestjs/core":"11.0.11","mongodb":"6.3.0","mqtt":"5.3.5","redis":"4.6.13","reflect-metadata":"0.2.2","rxjs":"7.8.1"}}' > libs/common/package.json
 
 # Install production dependencies with force to bypass peer dependency issues
@@ -70,10 +70,13 @@ RUN chmod +x /app/build.sh
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV MONGODB_URI=mongodb://mongodb:27017
+ENV MONGODB_URI=mongodb://mongodb:27017/microservices
 ENV MONGODB_DB=microservices
 ENV REDIS_URI=redis://redis:6379
 ENV MQTT_URI=mqtt://mosquitto:1883
+ENV MONGODB_CONNECT_TIMEOUT=30000
+ENV MONGODB_SOCKET_TIMEOUT=60000
+ENV MONGODB_SERVER_SELECTION_TIMEOUT=30000
 
 # Expose port
 EXPOSE 3000

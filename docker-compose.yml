@@ -15,7 +15,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_URI=mongodb://mongodb:27017/microservices
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
@@ -40,7 +40,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_URI=mongodb://mongodb:27017/microservices
       - MONGODB_DB=microservices
       - REDIS_URI=redis://redis:6379
       - MQTT_URI=mqtt://mosquitto:1883
