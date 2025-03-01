@@ -1,4 +1,10 @@
-import { Controller, Get, HttpException, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LogsService, TimeSeriesInfo } from './logs.service';
 import { ApiLogFilterDto } from '../../../../libs/common/src';
@@ -39,7 +45,7 @@ export class LogsController {
         pagination.page,
         pagination.limit,
       );
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(
         `Failed to get logs: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -51,7 +57,9 @@ export class LogsController {
   @ApiOperation({ summary: 'Get time series data for visualization' })
   @ApiResponse({ status: 200, description: 'Returns time series data' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async getTimeSeriesData(@Query() filter: ApiLogFilterDto): Promise<{ timeseries: TimeSeriesInfo[] }> {
+  async getTimeSeriesData(
+    @Query() filter: ApiLogFilterDto,
+  ): Promise<{ timeseries: TimeSeriesInfo[] }> {
     try {
       return {
         timeseries: await this.logsService.getTimeSeriesData(filter),

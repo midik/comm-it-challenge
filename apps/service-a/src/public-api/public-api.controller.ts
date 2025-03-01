@@ -1,4 +1,11 @@
-import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PublicApiService } from './public-api.service';
@@ -11,8 +18,16 @@ export class PublicApiController {
 
   @Get('fetch')
   @ApiOperation({ summary: 'Fetch data from external API' })
-  @ApiQuery({ name: 'url', required: true, description: 'URL of the external API' })
-  @ApiQuery({ name: 'params', required: false, description: 'Query parameters in JSON format' })
+  @ApiQuery({
+    name: 'url',
+    required: true,
+    description: 'URL of the external API',
+  })
+  @ApiQuery({
+    name: 'params',
+    required: false,
+    description: 'Query parameters in JSON format',
+  })
   @ApiResponse({ status: 200, description: 'Data fetched successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
@@ -34,24 +49,31 @@ export class PublicApiController {
     }
 
     try {
-      const filename = await this.publicApiService.fetchDataFromPublicApi(url, params);
+      const filename = await this.publicApiService.fetchDataFromPublicApi(
+        url,
+        params,
+      );
       return { filename, message: 'Data fetched successfully' };
     } catch (error) {
       throw new HttpException(
         `Failed to fetch data: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   @Get('download')
   @ApiOperation({ summary: 'Download previously fetched data file' })
-  @ApiQuery({ name: 'filename', required: true, description: 'Name of the file to download' })
+  @ApiQuery({
+    name: 'filename',
+    required: true,
+    description: 'Name of the file to download',
+  })
   @ApiResponse({ status: 200, description: 'File download' })
   @ApiResponse({ status: 404, description: 'File not found' })
   async downloadFile(
     @Query('filename') filename: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     if (!filename) {
       throw new HttpException('Filename is required', HttpStatus.BAD_REQUEST);

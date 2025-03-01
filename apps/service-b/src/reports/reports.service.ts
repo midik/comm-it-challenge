@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { LogsService } from '../logs/logs.service';
-import { ChartJSNodeCanvas } from "@elliots/chartjs-node-canvas";
+import { LogsService, TimeSeriesInfo } from '../logs/logs.service';
+import { ChartJSNodeCanvas } from '@elliots/chartjs-node-canvas';
 import * as PDFDocument from 'pdfkit';
 import { ApiLogFilterDto } from '../../../../libs/common/src';
 import * as fs from 'fs';
 import * as path from 'path';
-
 
 @Injectable()
 export class ReportsService {
@@ -14,7 +13,7 @@ export class ReportsService {
   private readonly chartJSNodeCanvas = new ChartJSNodeCanvas({
     width: 800,
     height: 400,
-    backgroundColour: '#ffffff'
+    backgroundColour: '#ffffff',
   });
 
   constructor(private readonly logsService: LogsService) {
@@ -63,7 +62,8 @@ export class ReportsService {
       doc.fontSize(16).text('Event Type Distribution', { align: 'center' });
       doc.moveDown();
 
-      const distributionChartBuffer = await this.generateDistributionChart(distribution);
+      const distributionChartBuffer =
+        await this.generateDistributionChart(distribution);
       doc.image(distributionChartBuffer, {
         fit: [500, 300],
         align: 'center',
@@ -83,7 +83,9 @@ export class ReportsService {
             align: 'center',
           });
           doc.moveDown();
-          doc.fontSize(10).text(`${series.type} - ${series.service}`, { align: 'center' });
+          doc
+            .fontSize(10)
+            .text(`${series.type} - ${series.service}`, { align: 'center' });
           doc.moveDown(2);
 
           // Add a new page if we have more charts to add
@@ -102,14 +104,19 @@ export class ReportsService {
       doc.fontSize(12).text('Total Events by Type:', { underline: true });
       doc.moveDown();
 
-      const totalEvents = Object.entries(distribution).reduce((sum, [_, count]) => sum + count, 0);
+      const totalEvents = Object.entries(distribution).reduce(
+        (sum, [_, count]) => sum + count,
+        0,
+      );
 
       // Create a table for the distribution
-      const distributionTable = Object.entries(distribution).map(([type, count]) => ({
-        type,
-        count,
-        percentage: `${((count / totalEvents) * 100).toFixed(2)}%`,
-      }));
+      const distributionTable = Object.entries(distribution).map(
+        ([type, count]) => ({
+          type,
+          count,
+          percentage: `${((count / totalEvents) * 100).toFixed(2)}%`,
+        }),
+      );
 
       // Add the table
       const tableTop = doc.y;
@@ -124,7 +131,7 @@ export class ReportsService {
 
       // Table rows
       let rowY = tableTop + rowHeight;
-      distributionTable.forEach(row => {
+      distributionTable.forEach((row) => {
         doc.text(row.type, tableLeft, rowY);
         doc.text(row.count.toString(), tableLeft + colWidth, rowY);
         doc.text(row.percentage, tableLeft + colWidth * 2, rowY);
@@ -144,7 +151,7 @@ export class ReportsService {
         }ms`,
         50,
         doc.page.height - 50,
-        { align: 'center' }
+        { align: 'center' },
       );
 
       // Finalize the PDF
@@ -168,7 +175,9 @@ export class ReportsService {
     return path.join(this.reportsDir, filename);
   }
 
-  private async generateDistributionChart(distribution: Record<string, number>): Promise<Buffer> {
+  private async generateDistributionChart(
+    distribution: Record<string, number>,
+  ): Promise<Buffer> {
     const labels = Object.keys(distribution);
     const data = Object.values(distribution);
 
@@ -205,13 +214,15 @@ export class ReportsService {
     return this.chartJSNodeCanvas.renderToBuffer(configuration as any);
   }
 
-  private async generateTimeSeriesChart(series: any): Promise<Buffer> {
-    const labels = series.data.map(point => {
+  private async generateTimeSeriesChart(
+    series: TimeSeriesInfo,
+  ): Promise<Buffer> {
+    const labels = series.data.map((point) => {
       const date = new Date(point.timestamp);
       return date.toLocaleString();
     });
 
-    const data = series.data.map(point => point.value);
+    const data = series.data.map((point) => point.value);
 
     const configuration = {
       type: 'line',

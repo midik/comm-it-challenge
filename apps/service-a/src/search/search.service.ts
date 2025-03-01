@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DatabaseService, EventType, PaginatedResponse } from '../../../../libs/common/src';
+import {
+  DatabaseService,
+  EventType,
+  PaginatedResponse,
+} from '../../../../libs/common/src';
 import { EventsService } from '../events/events.service';
 import { Collection, Document, Filter, Sort } from 'mongodb';
 
@@ -32,7 +36,12 @@ export class SearchService {
       // Execute count and find in parallel for better performance
       const [total, items] = await Promise.all([
         this.getDocumentCount(mongoCollection, query),
-        this.findDocuments<T>(mongoCollection, query, { page, limit, sort, projection }),
+        this.findDocuments<T>(mongoCollection, query, {
+          page,
+          limit,
+          sort,
+          projection,
+        }),
       ]);
 
       const result = new PaginatedResponse<T>(items, total, page, limit);
@@ -97,6 +106,6 @@ export class SearchService {
   async getCollections(): Promise<string[]> {
     const db = this.databaseService.getDb();
     const collections = await db.listCollections().toArray();
-    return collections.map(c => c.name);
+    return collections.map((c) => c.name);
   }
 }

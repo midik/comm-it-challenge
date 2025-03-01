@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ApiLogFilterDto, DatabaseService, PaginatedResponse, RedisService } from '../../../../libs/common/src';
+import {
+  ApiLogFilterDto,
+  DatabaseService,
+  PaginatedResponse,
+  RedisService,
+} from '../../../../libs/common/src';
 
 export interface TimeSeriesDataPoint {
   timestamp: number;
@@ -70,13 +75,11 @@ export class LogsService {
     }
   }
 
-  async getTimeSeriesData(
-    filter: ApiLogFilterDto
-  ): Promise<TimeSeriesInfo[]> {
+  async getTimeSeriesData(filter: ApiLogFilterDto): Promise<TimeSeriesInfo[]> {
     try {
       const startTimestamp = filter.startDate
         ? new Date(filter.startDate).getTime()
-        : Date.now() - (24 * 60 * 60 * 1000); // Default to last 24 hours
+        : Date.now() - 24 * 60 * 60 * 1000; // Default to last 24 hours
 
       const endTimestamp = filter.endDate
         ? new Date(filter.endDate).getTime()
@@ -105,7 +108,7 @@ export class LogsService {
           // Aggregate by 1-minute buckets for better visualization
           aggregation: { type: 'avg', timeBucket: 60000 },
           withLabels: true,
-        }
+        },
       );
 
       // Transform result to our format
@@ -142,7 +145,7 @@ export class LogsService {
   }
 
   async getEventTypeDistribution(
-    filter: ApiLogFilterDto
+    filter: ApiLogFilterDto,
   ): Promise<Record<string, number>> {
     try {
       const collection = this.databaseService.getCollection('events');
@@ -165,10 +168,12 @@ export class LogsService {
       }
 
       // Execute aggregation query
-      const result = await collection.aggregate([
-        { $match: matchStage },
-        { $group: { _id: '$type', count: { $sum: 1 } } },
-      ]).toArray();
+      const result = await collection
+        .aggregate([
+          { $match: matchStage },
+          { $group: { _id: '$type', count: { $sum: 1 } } },
+        ])
+        .toArray();
 
       // Transform to desired format
       const distribution: Record<string, number> = {};
@@ -179,7 +184,9 @@ export class LogsService {
 
       return distribution;
     } catch (error) {
-      this.logger.error(`Failed to get event type distribution: ${error.message}`);
+      this.logger.error(
+        `Failed to get event type distribution: ${error.message}`,
+      );
       throw error;
     }
   }

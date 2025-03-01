@@ -1,5 +1,19 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { SearchService } from './search.service';
 import { PaginationDto } from '../../../../libs/common/src';
 
@@ -25,7 +39,11 @@ export class SearchController {
 
   @Post()
   @ApiOperation({ summary: 'Search documents in a collection' })
-  @ApiQuery({ name: 'collection', required: true, description: 'Collection name to search in' })
+  @ApiQuery({
+    name: 'collection',
+    required: true,
+    description: 'Collection name to search in',
+  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -38,8 +56,16 @@ export class SearchController {
         pagination: {
           type: 'object',
           properties: {
-            page: { type: 'number', description: 'Page number (0-indexed)', default: 0 },
-            limit: { type: 'number', description: 'Items per page', default: 10 },
+            page: {
+              type: 'number',
+              description: 'Page number (0-indexed)',
+              default: 0,
+            },
+            limit: {
+              type: 'number',
+              description: 'Items per page',
+              default: 10,
+            },
           },
         },
         sort: {
@@ -67,25 +93,27 @@ export class SearchController {
     @Body('projection') projection?: Record<string, number>,
   ) {
     if (!collection) {
-      throw new HttpException('Collection name is required', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Collection name is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     try {
       // Convert sort to appropriate format if needed
-      const formattedSort: [string, 'asc' | 'desc'][] | undefined = sort ?
-        Object.entries(sort).map(([key, value]) => [key, value > 0 ? 'asc' : 'desc']) :
-        undefined;
+      const formattedSort: [string, 'asc' | 'desc'][] | undefined = sort
+        ? Object.entries(sort).map(([key, value]) => [
+            key,
+            value > 0 ? 'asc' : 'desc',
+          ])
+        : undefined;
 
-      return await this.searchService.search(
-        collection,
-        query,
-        {
-          page: pagination.page,
-          limit: pagination.limit,
-          sort: formattedSort,  // Type assertion to match service's expected type
-          projection,
-        },
-      );
+      return await this.searchService.search(collection, query, {
+        page: pagination.page,
+        limit: pagination.limit,
+        sort: formattedSort, // Type assertion to match service's expected type
+        projection,
+      });
     } catch (error) {
       throw new HttpException(
         `Search failed: ${error.message}`,

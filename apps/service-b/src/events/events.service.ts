@@ -13,17 +13,21 @@ export class EventsService implements OnModuleInit {
     private readonly databaseService: DatabaseService,
   ) {}
 
-  async onModuleInit() {
+  onModuleInit() {
     // Subscribe to all event types
-    const topics = Object.values(EventType).map(type => `service-a/events/${type}`);
+    const topics = Object.values(EventType).map(
+      (type) => `service-a/events/${type}`,
+    );
 
-    topics.forEach(topic => {
+    topics.forEach((topic) => {
       this.mqttService.subscribe(topic, (message: string) => {
         try {
           const event = JSON.parse(message) as EventDto;
-          this.handleEvent(event);
+          this.handleEvent(event).catch((error) => {
+            this.logger.error(`Error handling event message: ${error.message}`);
+          });
         } catch (error) {
-          this.logger.error(`Error processing event message: ${error.message}`);
+          this.logger.error(`Error parsing event message: ${error.message}`);
         }
       });
 
@@ -36,7 +40,9 @@ export class EventsService implements OnModuleInit {
         const event = JSON.parse(message) as EventDto;
         this.handleEvent(event);
       } catch (error) {
-        this.logger.error(`Error processing wildcard event message: ${error.message}`);
+        this.logger.error(
+          `Error processing wildcard event message: ${error.message}`,
+        );
       }
     });
 
@@ -46,7 +52,9 @@ export class EventsService implements OnModuleInit {
   private async handleEvent(event: EventDto) {
     try {
       // Store the event in MongoDB
-      const collection = this.databaseService.getCollection(this.EVENTS_COLLECTION);
+      const collection = this.databaseService.getCollection(
+        this.EVENTS_COLLECTION,
+      );
       await collection.insertOne({
         ...event,
         receivedAt: new Date(),
@@ -60,7 +68,9 @@ export class EventsService implements OnModuleInit {
 
   async getEventById(id: string): Promise<EventDto | null> {
     try {
-      const collection = this.databaseService.getCollection(this.EVENTS_COLLECTION);
+      const collection = this.databaseService.getCollection(
+        this.EVENTS_COLLECTION,
+      );
       const result = await collection.findOne({ id });
 
       if (!result) {
@@ -76,7 +86,7 @@ export class EventsService implements OnModuleInit {
         request: result.request,
         response: result.response,
         executionTime: result.executionTime,
-        metadata: result.metadata
+        metadata: result.metadata,
       } as EventDto;
     } catch (error) {
       this.logger.error(`Failed to get event by ID: ${error.message}`);

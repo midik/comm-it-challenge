@@ -16,7 +16,10 @@ export class UploadService {
     private readonly eventsService: EventsService,
   ) {}
 
-  async parseAndInsertFile(filename: string, collection: string): Promise<{ count: number, elapsedTime: number }> {
+  async parseAndInsertFile(
+    filename: string,
+    collection: string,
+  ): Promise<{ count: number; elapsedTime: number }> {
     const startTime = Date.now();
     const filePath = path.join(this.uploadDir, filename);
 
@@ -39,7 +42,9 @@ export class UploadService {
     } else if (['.xlsx', '.xls'].includes(extension)) {
       data = await this.parseExcelFile(filePath);
     } else {
-      throw new Error('Unsupported file format. Only JSON and Excel files are supported.');
+      throw new Error(
+        'Unsupported file format. Only JSON and Excel files are supported.',
+      );
     }
 
     const insertedCount = await this.insertDataToMongo(data, collection);
@@ -105,7 +110,8 @@ export class UploadService {
 
       // Process each row
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) { // Skip header row
+        if (rowNumber > 1) {
+          // Skip header row
           const rowData: Record<string, any> = {};
 
           row.eachCell((cell, colNumber) => {
@@ -124,7 +130,10 @@ export class UploadService {
     }
   }
 
-  private async insertDataToMongo(data: any[], collectionName: string): Promise<number> {
+  private async insertDataToMongo(
+    data: any[],
+    collectionName: string,
+  ): Promise<number> {
     try {
       const collection = this.databaseService.getCollection(collectionName);
 
@@ -153,10 +162,14 @@ export class UploadService {
         const result = await collection.insertMany(batch, { ordered: false });
         insertedCount += result.insertedCount;
 
-        this.logger.log(`Inserted batch ${i / this.BATCH_SIZE + 1}: ${result.insertedCount} documents`);
+        this.logger.log(
+          `Inserted batch ${i / this.BATCH_SIZE + 1}: ${result.insertedCount} documents`,
+        );
       }
 
-      this.logger.log(`Total inserted: ${insertedCount} documents into ${collectionName}`);
+      this.logger.log(
+        `Total inserted: ${insertedCount} documents into ${collectionName}`,
+      );
       return insertedCount;
     } catch (error) {
       this.logger.error(`Error inserting data to MongoDB: ${error.message}`);

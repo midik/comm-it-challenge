@@ -1,5 +1,5 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { MongoClient, Db, Collection } from 'mongodb';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Db, Document, MongoClient } from 'mongodb';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -72,12 +72,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       find: () => mockCursor,
       findOne: async () => null,
       insertOne: async () => ({ insertedId: 'mock-id' }),
-      insertMany: async (docs) => ({ insertedCount: docs.length }),
+      insertMany: async (docs: Document[]) => ({ insertedCount: docs.length }),
       updateOne: async () => ({ modifiedCount: 1 }),
       deleteOne: async () => ({ deletedCount: 1 }),
       countDocuments: async () => 0,
       // Add aggregate method for pipelines
-      aggregate: (pipeline) => {
+      aggregate: (pipeline: Document[]) => {
         console.log('Mock aggregate pipeline:', JSON.stringify(pipeline));
         return { toArray: async () => [] };
       }

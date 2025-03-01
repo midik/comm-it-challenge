@@ -1,4 +1,11 @@
-import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
 import { ApiLogFilterDto } from '../../../../libs/common/src';
@@ -12,7 +19,10 @@ export class ReportsController {
 
   @Get('generate')
   @ApiOperation({ summary: 'Generate a PDF report with charts and analysis' })
-  @ApiResponse({ status: 200, description: 'Returns information about the generated report' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns information about the generated report',
+  })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async generateReport(@Query() filter: ApiLogFilterDto) {
     try {

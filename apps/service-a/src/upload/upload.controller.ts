@@ -1,6 +1,20 @@
-import { Body, Controller, HttpException, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UploadService } from './upload.service';
 
 @ApiTags('Upload')
@@ -28,9 +42,15 @@ export class UploadController {
       required: ['file', 'collection'],
     },
   })
-  @ApiResponse({ status: 201, description: 'File uploaded and processed successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded and processed successfully',
+  })
   @ApiResponse({ status: 400, description: 'Bad request or invalid file' })
-  @ApiResponse({ status: 500, description: 'Internal server error during processing' })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error during processing',
+  })
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: any, // Fix the Express.Multer.File type issue
@@ -41,11 +61,17 @@ export class UploadController {
     }
 
     if (!collection) {
-      throw new HttpException('Collection name is required', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Collection name is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     try {
-      const result = await this.uploadService.parseAndInsertFile(file.filename, collection);
+      const result = await this.uploadService.parseAndInsertFile(
+        file.filename,
+        collection,
+      );
 
       return {
         message: 'File processed successfully',

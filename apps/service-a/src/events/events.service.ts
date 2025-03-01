@@ -28,7 +28,10 @@ export class EventsService {
       };
 
       // Publish to MQTT for service-b to consume
-      await this.mqttService.publish(`${this.topicPrefix}/${event.type}`, event);
+      await this.mqttService.publish(
+        `${this.topicPrefix}/${event.type}`,
+        event,
+      );
 
       // Log to Redis TimeSeries
       await this.logToRedisTimeSeries(event);
@@ -60,20 +63,14 @@ export class EventsService {
       }
 
       // Add event execution time to time series
-      await this.redisService.tsAdd(
-        key,
-        timestamp,
-        event.executionTime || 0
-      );
+      await this.redisService.tsAdd(key, timestamp, event.executionTime || 0);
 
       // Store event details in Redis (for 7 days)
-      await this.redisService.getClient().set(
-        `event:${event.id}`,
-        JSON.stringify(event),
-        {
-          EX: 7 * 24 * 60 * 60 // 7 days in seconds
-        }
-      );
+      await this.redisService
+        .getClient()
+        .set(`event:${event.id}`, JSON.stringify(event), {
+          EX: 7 * 24 * 60 * 60, // 7 days in seconds
+        });
     } catch (error) {
       this.logger.error(`Failed to log event to Redis: ${error.message}`);
     }

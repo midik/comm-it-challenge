@@ -21,7 +21,10 @@ export class PublicApiService {
     }
   }
 
-  async fetchDataFromPublicApi(apiUrl: string, params: Record<string, string> = {}): Promise<string> {
+  async fetchDataFromPublicApi(
+    apiUrl: string,
+    params: Record<string, string> = {},
+  ): Promise<string> {
     const startTime = Date.now();
 
     try {
@@ -37,7 +40,7 @@ export class PublicApiService {
 
       // Make the API request
       const response = await firstValueFrom(
-        this.httpService.get(apiUrl, { params }) as any
+        this.httpService.get(apiUrl, { params }) as any,
       );
 
       // Generate a unique filename
@@ -46,8 +49,11 @@ export class PublicApiService {
       const filePath = path.join(this.dataDir, filename);
 
       // Ensure we have a response with data
-      const responseData = response && typeof response === 'object' ? (response as any).data || {} : {};
-      
+      const responseData =
+        response && typeof response === 'object'
+          ? (response as any).data || {}
+          : {};
+
       // Write the data to a file
       fs.writeFileSync(filePath, JSON.stringify(responseData));
 
@@ -58,9 +64,12 @@ export class PublicApiService {
         type: EventType.API_RESPONSE,
         service: 'service-a',
         request: { url: apiUrl, params },
-        response: { 
-          status: response && typeof response === 'object' ? (response as any).status : 'unknown',
-          filename 
+        response: {
+          status:
+            response && typeof response === 'object'
+              ? (response as any).status
+              : 'unknown',
+          filename,
         },
         executionTime,
         timestamp: new Date(),
