@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DatabaseService } from '../../../../libs/common/src/database';
+import { DatabaseService, EventType, PaginatedResponse } from '../../../../libs/common/src';
 import { EventsService } from '../events/events.service';
-import { EventType } from '../../../../libs/common/src/dto/event.dto';
-import { PaginatedResponse } from '../../../../libs/common/src/dto';
 import { Collection, Document, Filter, Sort } from 'mongodb';
 
 @Injectable()
@@ -25,22 +23,22 @@ export class SearchService {
     } = {},
   ): Promise<PaginatedResponse<T>> {
     const startTime = Date.now();
-    
+
     try {
       const { page = 0, limit = 10, sort, projection } = options;
-      
+
       const mongoCollection = this.databaseService.getCollection(collection);
-      
+
       // Execute count and find in parallel for better performance
       const [total, items] = await Promise.all([
         this.getDocumentCount(mongoCollection, query),
         this.findDocuments<T>(mongoCollection, query, { page, limit, sort, projection }),
       ]);
-      
+
       const result = new PaginatedResponse<T>(items, total, page, limit);
-      
+
       const elapsedTime = Date.now() - startTime;
-      
+
       // Record search event
       await this.eventsService.recordEvent({
         type: EventType.DB_SEARCH,
@@ -50,11 +48,11 @@ export class SearchService {
         executionTime: elapsedTime,
         timestamp: new Date(),
       });
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Search error in ${collection}: ${error.message}`);
-      
+
       // Record error event
       await this.eventsService.recordEvent({
         type: EventType.DB_SEARCH,
@@ -64,7 +62,7 @@ export class SearchService {
         executionTime: Date.now() - startTime,
         timestamp: new Date(),
       });
-      
+
       throw error;
     }
   }
@@ -87,7 +85,7 @@ export class SearchService {
     },
   ): Promise<T[]> {
     const { page, limit, sort, projection } = options;
-    
+
     return collection
       .find(query, { projection })
       .sort(sort || { _id: 1 })

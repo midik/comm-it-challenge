@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { MqttModule } from '../../../../libs/common/src/mqtt';
-import { RedisModule } from '../../../../libs/common/src/redis';
+import { MqttModule } from '../../../../libs/common/src';
+import { RedisModule } from '../../../../libs/common/src';
 
 @Module({
   imports: [MqttModule, RedisModule],

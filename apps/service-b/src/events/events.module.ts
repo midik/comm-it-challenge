@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { MqttModule } from '../../../../libs/common/src/mqtt';
-import { DatabaseModule } from '../../../../libs/common/src/database';
+import { MqttModule } from '../../../../libs/common/src';
+import { DatabaseModule } from '../../../../libs/common/src';
 
 @Module({
   imports: [MqttModule, DatabaseModule],

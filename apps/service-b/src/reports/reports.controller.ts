@@ -1,7 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
-import { ApiLogFilterDto } from '../../../../libs/common/src/dto/api-log.dto';
+import { ApiLogFilterDto } from '../../../../libs/common/src';
 import { Response } from 'express';
 import * as fs from 'fs';
 

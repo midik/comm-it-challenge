@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SearchService } from './search.service';
-import { PaginationDto } from '../../../../libs/common/src/dto';
+import { PaginationDto } from '../../../../libs/common/src';
 
 @ApiTags('Search')
 @Controller('search')
@@ -72,23 +72,20 @@ export class SearchController {
 
     try {
       // Convert sort to appropriate format if needed
-      // For MongoDB, sort can be [key, direction] format
-      const formattedSort = sort ?
+      const formattedSort: [string, 'asc' | 'desc'][] | undefined = sort ?
         Object.entries(sort).map(([key, value]) => [key, value > 0 ? 'asc' : 'desc']) :
         undefined;
 
-      const result = await this.searchService.search(
+      return await this.searchService.search(
         collection,
         query,
         {
           page: pagination.page,
           limit: pagination.limit,
-          sort: formattedSort as any,  // Type assertion to match service's expected type
+          sort: formattedSort,  // Type assertion to match service's expected type
           projection,
         },
       );
-
-      return result;
     } catch (error) {
       throw new HttpException(
         `Search failed: ${error.message}`,

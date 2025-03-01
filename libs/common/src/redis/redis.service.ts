@@ -3,28 +3,30 @@ import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: RedisClientType;
+  private readonly client: RedisClientType;
 
   constructor() {
-    this.client = createClient({ 
-      url: process.env.REDIS_URI || 'redis://localhost:6379' 
+    this.client = createClient({
+      url: process.env.REDIS_URI || 'redis://localhost:6379'
     });
 
     // In debug mode, log only the first few errors to avoid flooding the console
     let errorCount = 0;
     this.client.on('error', (err) => {
-      const isDebugMode = process.execArgv.some(arg => 
-        arg.includes('--inspect') || arg.includes('ts-node')
-      );
+      console.error('Redis Client Error', err);
 
-      if (!isDebugMode || errorCount < 3) {
-        console.error('Redis Client Error', err);
-        errorCount++;
-        
-        if (isDebugMode && errorCount === 3) {
-          console.log('Suppressing further Redis connection errors in development mode...');
-        }
-      }
+      // const isDebugMode = process.execArgv.some(arg =>
+      //   arg.includes('--inspect') || arg.includes('ts-node')
+      // );
+      //
+      // if (!isDebugMode || errorCount < 3) {
+      //   console.error('Redis Client Error', err);
+      //   errorCount++;
+      //
+      //   if (isDebugMode && errorCount === 3) {
+      //     console.log('Suppressing further Redis connection errors in development mode...');
+      //   }
+      // }
     });
   }
 
@@ -34,17 +36,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       console.log('Connected to Redis');
     } catch (error) {
       console.error('Failed to connect to Redis', error);
-      
-      // In development mode, don't throw an error
-      const isDebugMode = process.execArgv.some(arg => 
-        arg.includes('--inspect') || arg.includes('ts-node')
-      );
-      
-      if (!isDebugMode) {
-        throw error;
-      } else {
-        console.log('Running in debug/development mode, continuing without Redis');
-      }
+      throw error;
+
+      // // In development mode, don't throw an error
+      // const isDebugMode = process.execArgv.some(arg =>
+      //   arg.includes('--inspect') || arg.includes('ts-node')
+      // );
+      //
+      // if (!isDebugMode) {
+      //   throw error;
+      // } else {
+      //   console.log('Running in debug/2development mode, continuing without Redis');
+      // }
     }
   }
 
@@ -58,10 +61,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   getClient(): RedisClientType {
-    if (!this.client.isOpen) {
-      console.warn('Redis is not connected. Using mock client in development mode.');
-      return this.getMockClient();
-    }
+    // if (!this.client.isOpen) {
+    //   console.warn('Redis is not connected. Using mock client in development mode.');
+    //   return this.getMockClient();
+    // }
     return this.client;
   }
 
@@ -81,18 +84,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   // Helper method for TimeSeries operations
   async tsCreate(key: string, options: { retention?: number, labels?: Record<string, string> } = {}) {
     const args = ['TS.CREATE', key];
-    
+
     if (options.retention) {
       args.push('RETENTION', options.retention.toString());
     }
-    
+
     if (options.labels && Object.keys(options.labels).length > 0) {
       args.push('LABELS');
       for (const [label, value] of Object.entries(options.labels)) {
         args.push(label, value);
       }
     }
-    
+
     try {
       return await this.client.sendCommand(args);
     } catch (error) {
@@ -107,9 +110,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async tsAdd(key: string, timestamp: number | '*', value: number) {
     try {
       return await this.client.sendCommand([
-        'TS.ADD', 
-        key, 
-        timestamp === '*' ? '*' : timestamp.toString(), 
+        'TS.ADD',
+        key,
+        timestamp === '*' ? '*' : timestamp.toString(),
         value.toString()
       ]);
     } catch (error) {
@@ -123,15 +126,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async tsRange(key: string, fromTimestamp: number, toTimestamp: number, options: { count?: number, aggregation?: { type: string, timeBucket: number } } = {}) {
     const args = ['TS.RANGE', key, fromTimestamp.toString(), toTimestamp.toString()];
-    
+
     if (options.count) {
       args.push('COUNT', options.count.toString());
     }
-    
+
     if (options.aggregation) {
       args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
     }
-    
+
     try {
       return await this.client.sendCommand(args);
     } catch (error) {
@@ -143,35 +146,35 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async tsMRange(fromTimestamp: number, toTimestamp: number, filter: string[], options: { 
-    count?: number, 
+  async tsMRange(fromTimestamp: number, toTimestamp: number, filter: string[], options: {
+    count?: number,
     aggregation?: { type: string, timeBucket: number },
     withLabels?: boolean
   } = {}) {
     const args = ['TS.MRANGE', fromTimestamp.toString(), toTimestamp.toString()];
-    
+
     if (options.count) {
       args.push('COUNT', options.count.toString());
     }
-    
+
     if (options.aggregation) {
       args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
     }
-    
+
     if (options.withLabels !== undefined) {
       args.push(options.withLabels ? 'WITHLABELS' : 'WITHLABELS');
     }
-    
+
     args.push('FILTER');
     filter.forEach(f => args.push(f));
-    
+
     try {
       return await this.client.sendCommand(args);
     } catch (error) {
       if (!this.client.isOpen) {
         console.warn(`Mock tsMRange for filters: ${filter.join(', ')}`);
         // Return a mock response formatted like a time series with labels
-        return []; 
+        return [];
       }
       throw error;
     }

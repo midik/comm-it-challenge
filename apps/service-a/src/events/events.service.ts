@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MqttService } from '../../../../libs/common/src/mqtt';
-import { RedisService } from '../../../../libs/common/src/redis';
-import { EventDto, EventType } from '../../../../libs/common/src/dto';
+import { MqttService } from '../../../../libs/common/src';
+import { RedisService } from '../../../../libs/common/src';
+import { EventDto, EventType } from '../../../../libs/common/src';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class EventsService {
     try {
       // Ensure event type is not undefined
       const type = eventData.type || EventType.API_REQUEST;
-      
+
       const event: EventDto = {
         id: uuidv4(),
         timestamp: new Date(),
@@ -44,7 +44,7 @@ export class EventsService {
   private async logToRedisTimeSeries(event: EventDto): Promise<void> {
     const timestamp = Math.floor(event.timestamp.getTime());
     const key = `events:${event.type}:${event.service}`;
-    
+
     try {
       // Create time series if it doesn't exist (with 7 days retention)
       try {
@@ -58,14 +58,14 @@ export class EventsService {
       } catch (error) {
         // Ignore error if time series already exists
       }
-      
+
       // Add event execution time to time series
       await this.redisService.tsAdd(
         key,
         timestamp,
         event.executionTime || 0
       );
-      
+
       // Store event details in Redis (for 7 days)
       await this.redisService.getClient().set(
         `event:${event.id}`,

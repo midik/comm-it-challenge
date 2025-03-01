@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LogsService } from '../logs/logs.service';
 import * as PDFDocument from 'pdfkit';
-import { ApiLogFilterDto } from '../../../../libs/common/src/dto/api-log.dto';
+import { ApiLogFilterDto } from '../../../../libs/common/src';
 import * as fs from 'fs';
 import * as path from 'path';
 

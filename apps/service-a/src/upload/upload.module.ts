@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
 import { EventsModule } from '../events/events.module';
-import { DatabaseModule } from '../../../../libs/common/src/database';
+import { DatabaseModule } from '../../../../libs/common/src';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
