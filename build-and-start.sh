@@ -19,6 +19,6 @@ DOCKER_BUILDKIT=1 docker-compose build --no-cache
 
 # Start the services
 echo "=> Starting microservices..."
-docker-compose up
+docker-compose up -d
 
 echo "Services are now running"

@@ -102,11 +102,15 @@ docker-compose up
 
 ### Service A
 
+Once service is up and running, you can access the Swagger documentation at http://localhost:3000/api.
+
 - **Public API Integration**: Fetch and store large datasets from external APIs
 - **File Processing**: Upload, parse, and efficiently store JSON/Excel files
 - **Robust Search**: Optimized MongoDB queries with proper indexing and pagination
 
 ### Service B
+
+Once service is up and running, you can access the Swagger documentation at http://localhost:3001/api.
 
 - **Event Logging**: Captures and stores all events from Service A
 - **Time Series Analytics**: Provides visualizations and analytics on API usage
