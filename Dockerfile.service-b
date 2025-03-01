@@ -24,12 +24,6 @@ RUN mkdir -p libs/common apps/service-b/src/reports/mocks
 RUN echo '{"name":"common"}' > libs/common/package.json && \
     echo '{"name":"service-b"}' > apps/service-b/package.json
 
-# Create JS mock implementation in advance
-RUN echo 'exports.MockChartJSNodeCanvas = class { \
-  constructor() { console.log("Mock chart"); } \
-  async renderToBuffer() { return Buffer.from([0]); } \
-};' > apps/service-b/src/reports/mocks/mock-chart.js
-
 # Copy source files
 COPY libs/common/tsconfig.json ./libs/common/
 COPY libs/common/src ./libs/common/src
@@ -51,9 +45,7 @@ RUN echo '{"extends": "./apps/service-b/tsconfig.json","compilerOptions": {"skip
 RUN npx tsc -p tsconfig.build.json --noEmit false || true
 
 # Create needed directory structure for compiled JavaScript
-RUN mkdir -p apps/service-b/dist/apps/service-b/src/reports/mocks && \
-    cp apps/service-b/src/reports/mocks/mock-chart.js apps/service-b/dist/apps/service-b/src/reports/mocks/ && \
-    mkdir -p apps/service-b/dist/apps/service-b/src/logs && \
+RUN mkdir -p apps/service-b/dist/apps/service-b/src/logs && \
     mkdir -p apps/service-b/dist/apps/service-b/src/events && \
     mkdir -p libs/common/dist/libs/common/src/database && \
     mkdir -p libs/common/dist/libs/common/src/redis && \
@@ -91,10 +83,6 @@ RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
     # Remove node-gyp and any build tools to prevent compilation attempts
     rm -rf /usr/local/lib/node_modules/npm/node_modules/node-gyp
 
-# Copy startup script and make it executable
-COPY build.sh /app/
-RUN chmod +x /app/build.sh
-
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
@@ -110,4 +98,4 @@ ENV MONGODB_SERVER_SELECTION_TIMEOUT=30000
 EXPOSE 3001
 
 # Start service
-CMD ["/bin/sh", "/app/build.sh"]
+CMD ["sh", "-c", "cd /app && node apps/service-b/dist/apps/service-b/src/main.js"]

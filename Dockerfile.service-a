@@ -63,10 +63,6 @@ RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
     # Remove node-gyp and any build tools to prevent compilation attempts
     rm -rf /usr/local/lib/node_modules/npm/node_modules/node-gyp
 
-# Copy startup script and make it executable
-COPY build.sh /app/
-RUN chmod +x /app/build.sh
-
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -82,4 +78,4 @@ ENV MONGODB_SERVER_SELECTION_TIMEOUT=30000
 EXPOSE 3000
 
 # Start service
-CMD ["/bin/sh", "/app/build.sh"]
+CMD ["sh", "-c", "cd /app && node apps/service-a/dist/apps/service-a/src/main.js"]
