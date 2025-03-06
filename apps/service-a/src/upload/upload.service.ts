@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ExcelJS from 'exceljs';
-import { DatabaseService, EventType } from '../../../../libs/common/src';
+import { DatabaseService, EventSubType, EventType } from '../../../../libs/common/src';
 import { EventsService } from '../events/events.service';
 
 @Injectable()
@@ -28,10 +28,9 @@ export class UploadService {
     }
 
     await this.eventsService.recordEvent({
-      type: EventType.FILE_PARSE,
-      service: 'service-a',
+      type: EventType.FILE_UPLOAD,
+      subType: EventSubType.REQUEST,
       request: { filename, collection },
-      timestamp: new Date(),
     });
 
     let data: any[] = [];
@@ -52,11 +51,10 @@ export class UploadService {
 
     await this.eventsService.recordEvent({
       type: EventType.FILE_UPLOAD,
-      service: 'service-a',
+      subType: EventSubType.RESPONSE,
       request: { filename, collection },
       response: { count: insertedCount },
       executionTime: elapsedTime,
-      timestamp: new Date(),
     });
 
     return { count: insertedCount, elapsedTime };
@@ -157,20 +155,18 @@ export class UploadService {
 
       // Insert data in batches
       let insertedCount = 0;
+
       for (let i = 0; i < data.length; i += this.BATCH_SIZE) {
         const batch = data.slice(i, i + this.BATCH_SIZE);
         const result = await collection.insertMany(batch, { ordered: false });
         insertedCount += result.insertedCount;
 
-        this.logger.log(
-          `Inserted batch ${i / this.BATCH_SIZE + 1}: ${result.insertedCount} documents`,
-        );
+        this.logger.log(`Inserted batch ${i / this.BATCH_SIZE + 1}: ${result.insertedCount} documents`);
       }
 
-      this.logger.log(
-        `Total inserted: ${insertedCount} documents into ${collectionName}`,
-      );
+      this.logger.log(`Total inserted: ${insertedCount} documents into ${collectionName}`);
       return insertedCount;
+
     } catch (error) {
       this.logger.error(`Error inserting data to MongoDB: ${error.message}`);
       throw new Error(`Failed to insert data: ${error.message}`);

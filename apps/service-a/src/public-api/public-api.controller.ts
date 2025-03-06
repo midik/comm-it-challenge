@@ -9,7 +9,6 @@ import {
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PublicApiService } from './public-api.service';
-import * as fs from 'fs';
 
 @ApiTags('Public API')
 @Controller('public-api')
@@ -79,12 +78,22 @@ export class PublicApiController {
       throw new HttpException('Filename is required', HttpStatus.BAD_REQUEST);
     }
 
-    const filePath = this.publicApiService.getFilePath(filename);
+    try {
+      const { exists, filePath } = await this.publicApiService.downloadFile(filename);
+      
+      if (!exists) {
+        throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+      }
 
-    if (!fs.existsSync(filePath)) {
-      throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+      return res.download(filePath);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Failed to download file: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return res.download(filePath);
   }
 }

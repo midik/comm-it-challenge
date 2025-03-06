@@ -22,21 +22,6 @@ import { PaginationDto } from '../../../../libs/common/src';
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
-  @Get('collections')
-  @ApiOperation({ summary: 'Get all available collections' })
-  @ApiResponse({ status: 200, description: 'List of collections' })
-  async getCollections() {
-    try {
-      const collections = await this.searchService.getCollections();
-      return { collections };
-    } catch (error) {
-      throw new HttpException(
-        `Failed to get collections: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   @Post()
   @ApiOperation({ summary: 'Search documents in a collection' })
   @ApiQuery({

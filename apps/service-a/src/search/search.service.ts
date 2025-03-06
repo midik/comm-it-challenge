@@ -1,9 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  DatabaseService,
-  EventType,
-  PaginatedResponse,
-} from '../../../../libs/common/src';
+import { DatabaseService, EventSubType, EventType, PaginatedResponse, } from '../../../../libs/common/src';
 import { EventsService } from '../events/events.service';
 import { Collection, Document, Filter, Sort } from 'mongodb';
 
@@ -28,6 +24,12 @@ export class SearchService {
   ): Promise<PaginatedResponse<T>> {
     const startTime = Date.now();
 
+    await this.eventsService.recordEvent({
+      type: EventType.DB_SEARCH,
+      subType: EventSubType.REQUEST,
+      request: { collection, query, options },
+    });
+
     try {
       const { page = 0, limit = 10, sort, projection } = options;
 
@@ -46,30 +48,27 @@ export class SearchService {
 
       const result = new PaginatedResponse<T>(items, total, page, limit);
 
-      const elapsedTime = Date.now() - startTime;
-
       // Record search event
       await this.eventsService.recordEvent({
         type: EventType.DB_SEARCH,
-        service: 'service-a',
+        subType: EventSubType.RESPONSE,
         request: { collection, query, options },
         response: { total, page, limit },
-        executionTime: elapsedTime,
-        timestamp: new Date(),
+        executionTime: Date.now() - startTime,
       });
 
       return result;
+
     } catch (error) {
       this.logger.error(`Search error in ${collection}: ${error.message}`);
 
       // Record error event
       await this.eventsService.recordEvent({
         type: EventType.DB_SEARCH,
-        service: 'service-a',
+        subType: EventSubType.ERROR,
         request: { collection, query, options },
         response: { error: error.message },
         executionTime: Date.now() - startTime,
-        timestamp: new Date(),
       });
 
       throw error;
@@ -101,11 +100,5 @@ export class SearchService {
       .skip(page * limit)
       .limit(limit)
       .toArray() as Promise<T[]>;
-  }
-
-  async getCollections(): Promise<string[]> {
-    const db = this.databaseService.getDb();
-    const collections = await db.listCollections().toArray();
-    return collections.map((c) => c.name);
   }
 }

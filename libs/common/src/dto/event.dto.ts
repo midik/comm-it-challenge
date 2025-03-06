@@ -1,23 +1,33 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum EventType {
-  API_REQUEST = 'API_REQUEST',
-  API_RESPONSE = 'API_RESPONSE',
+  FETCH_DATA = 'FETCH_DATA',
   FILE_DOWNLOAD = 'FILE_DOWNLOAD',
   FILE_UPLOAD = 'FILE_UPLOAD',
-  FILE_PARSE = 'FILE_PARSE',
   DB_SEARCH = 'DB_SEARCH',
+}
+
+export enum EventSubType {
+  REQUEST = 'REQUEST',
+  RESPONSE = 'RESPONSE',
+  ERROR = 'ERROR',
 }
 
 export class EventDto {
   @ApiProperty({ description: 'Unique identifier for the event' })
   id: string;
 
-  @ApiProperty({ 
-    enum: EventType, 
-    description: 'Type of event that occurred' 
+  @ApiProperty({
+    enum: EventType,
+    description: 'Type of event that occurred'
   })
   type: EventType;
+
+  @ApiProperty({
+    enum: EventSubType,
+    description: 'Subtype of event'
+  })
+  subType: EventSubType;
 
   @ApiProperty({ description: 'Timestamp when the event occurred' })
   timestamp: Date;

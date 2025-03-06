@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventsService } from '../events/events.service';
-import { EventType } from '../../../../libs/common/src';
+import { EventSubType, EventType } from '../../../../libs/common/src';
 
 @Injectable()
 export class PublicApiService {
@@ -32,10 +32,9 @@ export class PublicApiService {
 
       // Record the API request event
       await this.eventsService.recordEvent({
-        type: EventType.API_REQUEST,
-        service: 'service-a',
+        type: EventType.FETCH_DATA,
+        subType: EventSubType.REQUEST,
         request: { url: apiUrl, params },
-        timestamp: new Date(),
       });
 
       // Make the API request
@@ -55,14 +54,12 @@ export class PublicApiService {
           : {};
 
       // Write the data to a file
-      fs.writeFileSync(filePath, JSON.stringify(responseData));
-
-      const executionTime = Date.now() - startTime;
+      await fs.promises.writeFile(filePath, JSON.stringify(responseData));
 
       // Record the API response event
       await this.eventsService.recordEvent({
-        type: EventType.API_RESPONSE,
-        service: 'service-a',
+        type: EventType.FETCH_DATA,
+        subType: EventSubType.RESPONSE,
         request: { url: apiUrl, params },
         response: {
           status:
@@ -71,8 +68,7 @@ export class PublicApiService {
               : 'unknown',
           filename,
         },
-        executionTime,
-        timestamp: new Date(),
+        executionTime: Date.now() - startTime,
       });
 
       this.logger.log(`Data saved to: ${filename}`);
@@ -82,19 +78,42 @@ export class PublicApiService {
 
       // Record the error event
       await this.eventsService.recordEvent({
-        type: EventType.API_RESPONSE,
-        service: 'service-a',
+        type: EventType.FETCH_DATA,
+        subType: EventSubType.ERROR,
         request: { url: apiUrl, params },
         response: { error: error.message },
         executionTime: Date.now() - startTime,
-        timestamp: new Date(),
       });
 
       throw error;
     }
   }
 
-  getFilePath(filename: string): string {
-    return path.join(this.dataDir, filename);
+  async downloadFile(filename: string): Promise<{ exists: boolean; filePath: string }> {
+    if (!filename) {
+      throw new Error('Filename is required');
+    }
+
+    // Record the API request event
+    await this.eventsService.recordEvent({
+      type: EventType.FILE_DOWNLOAD,
+      subType: EventSubType.REQUEST,
+      request: { filename },
+    });
+
+    const filePath = path.join(this.dataDir, filename);
+    const fileExists = await fs.promises.access(filePath).then(() => true).catch(() => false); // Not so optimal
+
+    this.logger.log(`Download request for file: ${filename}, exists: ${fileExists}`);
+
+    // Record the file download event
+    await this.eventsService.recordEvent({
+      type: EventType.FILE_DOWNLOAD,
+      subType: EventSubType.RESPONSE,
+      request: { filename },
+      response: { exists: fileExists },
+    });
+
+    return { exists: fileExists, filePath };
   }
 }
