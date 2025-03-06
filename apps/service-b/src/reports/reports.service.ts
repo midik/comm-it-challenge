@@ -79,14 +79,10 @@ export class ReportsService {
         for (const series of timeSeriesData) {
           const chartBuffer = await this.generateTimeSeriesChart(series);
           doc.image(chartBuffer, {
-            fit: [500, 250],
+            fit: [700, 400],
             align: 'center',
           });
           doc.moveDown();
-          doc
-            .fontSize(10)
-            .text(`${series.type} - ${series.service}`, { align: 'center' });
-          doc.moveDown(2);
 
           // Add a new page if we have more charts to add
           if (series !== timeSeriesData[timeSeriesData.length - 1]) {
