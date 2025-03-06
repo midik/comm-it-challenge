@@ -34,7 +34,11 @@ export class ReportsService {
       const filePath = path.join(this.reportsDir, filename);
 
       // Create a new PDF document
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const doc = new PDFDocument({
+        margin: 50,
+        size: 'A4',
+        layout: 'landscape',
+      });
 
       // Pipe the PDF to a file
       const stream = fs.createWriteStream(filePath);
@@ -60,41 +64,38 @@ export class ReportsService {
       ]);
 
       // 1. Add event type distribution chart
-      doc.fontSize(16).text('Event Type Distribution', { align: 'center' });
-      doc.moveDown();
-
       const distributionChartBuffer =
         await this.generateDistributionChart(distribution);
       doc.image(distributionChartBuffer, {
-        fit: [500, 300],
+        fit: [700, 400],
         align: 'center',
       });
       doc.moveDown(2);
 
       // 2. Add time series data chart for each type
-      if (timeSeriesData.length > 0) {
-        doc.addPage();
-        doc.fontSize(16).text('Event Execution Times', { align: 'center' });
-        doc.moveDown();
-
-        for (const series of timeSeriesData) {
-          const chartBuffer = await this.generateTimeSeriesChart(series);
-          doc.image(chartBuffer, {
-            fit: [500, 250],
-            align: 'center',
-          });
-          doc.moveDown();
-          doc
-            .fontSize(10)
-            .text(`${series.type} - ${series.service}`, { align: 'center' });
-          doc.moveDown(2);
-
-          // Add a new page if we have more charts to add
-          if (series !== timeSeriesData[timeSeriesData.length - 1]) {
-            doc.addPage();
-          }
-        }
-      }
+      // if (timeSeriesData.length > 0) {
+      //   doc.addPage();
+      //   doc.fontSize(16).text('Event Execution Times', { align: 'center' });
+      //   doc.moveDown();
+      //
+      //   for (const series of timeSeriesData) {
+      //     const chartBuffer = await this.generateTimeSeriesChart(series);
+      //     doc.image(chartBuffer, {
+      //       fit: [500, 250],
+      //       align: 'center',
+      //     });
+      //     doc.moveDown();
+      //     doc
+      //       .fontSize(10)
+      //       .text(`${series.type} - ${series.service}`, { align: 'center' });
+      //     doc.moveDown(2);
+      //
+      //     // Add a new page if we have more charts to add
+      //     if (series !== timeSeriesData[timeSeriesData.length - 1]) {
+      //       doc.addPage();
+      //     }
+      //   }
+      // }
 
       // 3. Add summary statistics
       doc.addPage();
@@ -143,17 +144,6 @@ export class ReportsService {
       doc.text('Total', tableLeft, rowY);
       doc.text(totalEvents.toString(), tableLeft + colWidth, rowY);
       doc.text('100%', tableLeft + colWidth * 2, rowY);
-
-      // Add footer with timestamps
-      doc.fontSize(8);
-      doc.text(
-        `Report generated on ${new Date().toISOString()} in ${
-          Date.now() - startTime
-        }ms`,
-        50,
-        doc.page.height - 50,
-        { align: 'center' },
-      );
 
       // Finalize the PDF
       doc.end();
