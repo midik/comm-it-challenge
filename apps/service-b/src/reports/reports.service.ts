@@ -5,6 +5,7 @@ import * as PDFDocument from 'pdfkit';
 import { ApiLogFilterDto } from '../../../../libs/common/src';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Chart } from 'chart.js';
 
 @Injectable()
 export class ReportsService {
@@ -206,6 +207,28 @@ export class ReportsService {
           },
           legend: {
             position: 'right',
+            labels: {
+              generateLabels: (chart: Chart) => {
+                const data = chart.data;
+                if (data.labels?.length && data.datasets.length) {
+                  return data.labels.map((label: string, i: number) => {
+                    const meta = chart.getDatasetMeta(0);
+                    const style = meta.controller.getStyle(i, false);
+                    const value = data.datasets[0].data[i];
+
+                    return {
+                      text: `${label} (${value})`,
+                      index: i,
+                      fillStyle: style.backgroundColor,
+                      strokeStyle: style.borderColor,
+                      lineWidth: style.borderWidth,
+                      hidden: !chart.getDataVisibility(i),
+                    };
+                  });
+                }
+                return [];
+              },
+            },
           },
         },
       },
