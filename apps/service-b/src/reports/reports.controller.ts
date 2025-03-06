@@ -1,14 +1,7 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Query, Res, } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
-import { ApiLogFilterDto } from '../../../../libs/common/src';
+import { ApiLogFilterDto, EventSubType } from '../../../../libs/common/src';
 import { Response } from 'express';
 import * as fs from 'fs';
 
@@ -26,6 +19,9 @@ export class ReportsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async generateReport(@Query() filter: ApiLogFilterDto) {
     try {
+      // Include only responses by default
+      if (!filter.subType) filter.subType = EventSubType.RESPONSE;
+
       const filename = await this.reportsService.generatePDFReport(filter);
 
       return {

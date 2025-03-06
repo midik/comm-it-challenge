@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
+import { EventSubType } from '../dto';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -14,19 +15,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     let errorCount = 0;
     this.client.on('error', (err) => {
       console.error('Redis Client Error', err);
-
-      // const isDebugMode = process.execArgv.some(arg =>
-      //   arg.includes('--inspect') || arg.includes('ts-node')
-      // );
-      //
-      // if (!isDebugMode || errorCount < 3) {
-      //   console.error('Redis Client Error', err);
-      //   errorCount++;
-      //
-      //   if (isDebugMode && errorCount === 3) {
-      //     console.log('Suppressing further Redis connection errors in development mode...');
-      //   }
-      // }
     });
   }
 
@@ -37,17 +25,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       console.error('Failed to connect to Redis', error);
       throw error;
-
-      // // In development mode, don't throw an error
-      // const isDebugMode = process.execArgv.some(arg =>
-      //   arg.includes('--inspect') || arg.includes('ts-node')
-      // );
-      //
-      // if (!isDebugMode) {
-      //   throw error;
-      // } else {
-      //   console.log('Running in debug/2development mode, continuing without Redis');
-      // }
     }
   }
 
@@ -61,24 +38,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   getClient(): RedisClientType {
-    // if (!this.client.isOpen) {
-    //   console.warn('Redis is not connected. Using mock client in development mode.');
-    //   return this.getMockClient();
-    // }
     return this.client;
-  }
-
-  // Creates a mock client for development
-  private getMockClient() {
-    return {
-      isOpen: false,
-      isReady: false,
-      get: async () => null,
-      set: async () => 'OK',
-      del: async () => 0,
-      exists: async () => 0,
-      sendCommand: async () => [],
-    } as any;
   }
 
   // Helper method for TimeSeries operations
@@ -96,54 +56,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    try {
-      return await this.client.sendCommand(args);
-    } catch (error) {
-      if (!this.client.isOpen) {
-        console.warn(`Mock tsCreate for ${key}`);
-        return 'OK';
-      }
-      throw error;
-    }
+    return await this.client.sendCommand(args);
   }
 
   async tsAdd(key: string, timestamp: number | '*', value: number) {
-    try {
-      return await this.client.sendCommand([
-        'TS.ADD',
-        key,
-        timestamp === '*' ? '*' : timestamp.toString(),
-        value.toString()
-      ]);
-    } catch (error) {
-      if (!this.client.isOpen) {
-        console.warn(`Mock tsAdd for ${key}`);
-        return timestamp === '*' ? Date.now() : timestamp;
-      }
-      throw error;
-    }
-  }
-
-  async tsRange(key: string, fromTimestamp: number, toTimestamp: number, options: { count?: number, aggregation?: { type: string, timeBucket: number } } = {}) {
-    const args = ['TS.RANGE', key, fromTimestamp.toString(), toTimestamp.toString()];
-
-    if (options.count) {
-      args.push('COUNT', options.count.toString());
-    }
-
-    if (options.aggregation) {
-      args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
-    }
-
-    try {
-      return await this.client.sendCommand(args);
-    } catch (error) {
-      if (!this.client.isOpen) {
-        console.warn(`Mock tsRange for ${key}`);
-        return [];
-      }
-      throw error;
-    }
+    return await this.client.sendCommand([
+      'TS.ADD',
+      key,
+      timestamp === '*' ? '*' : timestamp.toString(),
+      value.toString()
+    ]);
   }
 
   async tsMRange(fromTimestamp: number, toTimestamp: number, filter: string[], options: {
@@ -161,22 +83,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
     }
 
-    if (options.withLabels) {
-      args.push('WITHLABELS');
-    }
+    args.push('WITHLABELS');
 
     args.push('FILTER');
-    filter.forEach(f => args.push(f));
-
-    try {
-      return await this.client.sendCommand(args);
-    } catch (error) {
-      if (!this.client.isOpen) {
-        console.warn(`Mock tsMRange for filters: ${filter.join(', ')}`);
-        // Return a mock response formatted like a time series with labels
-        return [];
-      }
-      throw error;
+    if (filter && filter.length > 0) {
+      filter.forEach(f => args.push(f));
+    } else {
+      args.push(`subType=(${Object.values(EventSubType).join(',')})`);
     }
+
+    return await this.client.sendCommand(args);
   }
 }

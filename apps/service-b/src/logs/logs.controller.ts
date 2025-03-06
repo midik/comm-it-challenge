@@ -59,11 +59,9 @@ export class LogsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async getTimeSeriesData(
     @Query() filter: ApiLogFilterDto,
-  ): Promise<{ timeseries: TimeSeriesInfo[] }> {
+  ): Promise<TimeSeriesInfo[]> {
     try {
-      return {
-        timeseries: await this.logsService.getTimeSeriesData(filter),
-      };
+      return await this.logsService.getTimeSeriesData(filter);
     } catch (error) {
       throw new HttpException(
         `Failed to get time series data: ${error.message}`,

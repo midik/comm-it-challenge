@@ -26,8 +26,6 @@ export class ReportsService {
 
   async generatePDFReport(filter: ApiLogFilterDto): Promise<string> {
     try {
-      const startTime = Date.now();
-
       // Generate a unique filename for the report
       const timestamp = new Date().toISOString().replace(/:/g, '-');
       const filename = `report_${timestamp}.pdf`;
@@ -73,29 +71,29 @@ export class ReportsService {
       doc.moveDown(2);
 
       // 2. Add time series data chart for each type
-      // if (timeSeriesData.length > 0) {
-      //   doc.addPage();
-      //   doc.fontSize(16).text('Event Execution Times', { align: 'center' });
-      //   doc.moveDown();
-      //
-      //   for (const series of timeSeriesData) {
-      //     const chartBuffer = await this.generateTimeSeriesChart(series);
-      //     doc.image(chartBuffer, {
-      //       fit: [500, 250],
-      //       align: 'center',
-      //     });
-      //     doc.moveDown();
-      //     doc
-      //       .fontSize(10)
-      //       .text(`${series.type} - ${series.service}`, { align: 'center' });
-      //     doc.moveDown(2);
-      //
-      //     // Add a new page if we have more charts to add
-      //     if (series !== timeSeriesData[timeSeriesData.length - 1]) {
-      //       doc.addPage();
-      //     }
-      //   }
-      // }
+      if (timeSeriesData.length > 0) {
+        doc.addPage();
+        doc.fontSize(16).text('Event Execution Times', { align: 'center' });
+        doc.moveDown();
+
+        for (const series of timeSeriesData) {
+          const chartBuffer = await this.generateTimeSeriesChart(series);
+          doc.image(chartBuffer, {
+            fit: [500, 250],
+            align: 'center',
+          });
+          doc.moveDown();
+          doc
+            .fontSize(10)
+            .text(`${series.type} - ${series.service}`, { align: 'center' });
+          doc.moveDown(2);
+
+          // Add a new page if we have more charts to add
+          if (series !== timeSeriesData[timeSeriesData.length - 1]) {
+            doc.addPage();
+          }
+        }
+      }
 
       // 3. Add summary statistics
       doc.addPage();

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EventType } from './event.dto';
+import { EventSubType, EventType } from './event.dto';
 
 export class ApiLogFilterDto {
   @ApiProperty({
@@ -28,6 +28,15 @@ export class ApiLogFilterDto {
   @IsOptional()
   @IsEnum(EventType)
   type?: EventType;
+
+  @ApiProperty({
+    enum: EventSubType,
+    description: 'SubType of event to filter',
+    required: false
+  })
+  @IsOptional()
+  @IsEnum(EventSubType)
+  subType?: EventSubType;
 
   @ApiProperty({
     description: 'Service that generated the event',

@@ -42,7 +42,7 @@ export class EventsService {
 
   private async logToRedisTimeSeries(event: EventDto): Promise<void> {
     const timestamp = Math.floor(event.timestamp.getTime());
-    const key = `events:${event.type}:${event.service}`;
+    const key = `events:${event.type}:${event.subType}:${event.service}`;
 
     try {
       // Create time series if it doesn't exist (with 7 days retention)
@@ -51,6 +51,7 @@ export class EventsService {
           retention: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
           labels: {
             type: event.type,
+            subType: event.subType,
             service: event.service,
           },
         });

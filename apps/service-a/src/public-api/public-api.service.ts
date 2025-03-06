@@ -90,6 +90,8 @@ export class PublicApiService {
   }
 
   async downloadFile(filename: string): Promise<{ exists: boolean; filePath: string }> {
+    const startTime = Date.now();
+
     if (!filename) {
       throw new Error('Filename is required');
     }
@@ -112,6 +114,7 @@ export class PublicApiService {
       subType: EventSubType.RESPONSE,
       request: { filename },
       response: { exists: fileExists },
+      executionTime: Date.now() - startTime,
     });
 
     return { exists: fileExists, filePath };

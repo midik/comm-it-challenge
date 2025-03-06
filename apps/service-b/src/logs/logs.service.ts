@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ApiLogFilterDto,
-  DatabaseService,
+  DatabaseService, EventSubType,
   PaginatedResponse,
   RedisService,
 } from '../../../../libs/common/src';
@@ -13,6 +13,7 @@ export interface TimeSeriesDataPoint {
 
 export interface TimeSeriesInfo {
   type: string;
+  subType: string;
   service: string;
   from: number;
   to: number;
@@ -26,7 +27,8 @@ export class LogsService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
-  ) {}
+  ) {
+  }
 
   async getLogs(
     filter: ApiLogFilterDto,
@@ -90,9 +92,10 @@ export class LogsService {
 
       if (filter.type) {
         filterExpressions.push(`type=${filter.type}`);
-      } else {
-        // If no type specified, include all event types
-        filterExpressions.push('type=*');
+      }
+
+      if (filter.subType) {
+        filterExpressions.push(`subType=${filter.subType}`);
       }
 
       if (filter.service) {
@@ -103,12 +106,7 @@ export class LogsService {
       const result = await this.redisService.tsMRange(
         startTimestamp,
         endTimestamp,
-        filterExpressions.length > 0 ? filterExpressions : ['*'],
-        {
-          // Aggregate by 1-minute buckets for better visualization
-          aggregation: { type: 'avg', timeBucket: 60000 },
-          withLabels: true,
-        },
+        filterExpressions,
       );
 
       // Transform result to our format
@@ -125,7 +123,8 @@ export class LogsService {
 
             timeSeriesData.push({
               type: labels.type || key.split(':')[1] || 'unknown',
-              service: labels.service || 'unknown',
+              subType: labels.subType || key.split(':')[2] || 'unknown',
+              service: labels.service || key.split(':')[3] || 'unknown',
               from: startTimestamp,
               to: endTimestamp,
               data: values.map(([timestamp, value]) => ({
