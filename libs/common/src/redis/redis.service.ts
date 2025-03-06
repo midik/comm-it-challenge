@@ -161,8 +161,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       args.push('AGGREGATION', options.aggregation.type, options.aggregation.timeBucket.toString());
     }
 
-    if (options.withLabels !== undefined) {
-      args.push(options.withLabels ? 'WITHLABELS' : 'WITHLABELS');
+    if (options.withLabels) {
+      args.push('WITHLABELS');
     }
 
     args.push('FILTER');
