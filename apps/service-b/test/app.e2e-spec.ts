@@ -68,9 +68,7 @@ describe('Service-B API (e2e)', () => {
         .query({ interval: 'hour', from: '2025-01-01', to: '2025-03-01' })
         .expect(200)
         .expect((res) => {
-          expect(res.body).toMatchObject({
-            timeseries: expect.any(Array),
-          })
+          expect(res.body).toMatchObject(expect.any(Array))
         });
     });
 

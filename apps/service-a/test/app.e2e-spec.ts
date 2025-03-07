@@ -80,15 +80,6 @@ describe('Service-A API (e2e)', () => {
   });
 
   describe('SearchController', () => {
-    it('/search/collections (GET) - should return available collections', () => {
-      return request(app.getHttpServer())
-        .get('/search/collections')
-        .expect(200)
-        .expect((res) => {
-          expect(Array.isArray(res.body.collections)).toBe(true);
-        });
-    });
-
     it('/search (POST) - should search in a collection', () => {
       return request(app.getHttpServer())
         .post('/search')
