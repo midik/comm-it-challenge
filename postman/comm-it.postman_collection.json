@@ -36,18 +36,18 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{url}}/public-api/fetch?url=https://ifconfig.co/json",
+					"raw": "{{url}}/public-api/download?filename=data_2025-03-06T21-56-43.696Z.json",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
 						"public-api",
-						"fetch"
+						"download"
 					],
 					"query": [
 						{
-							"key": "url",
-							"value": "https://ifconfig.co/json"
+							"key": "filename",
+							"value": "data_2025-03-06T21-56-43.696Z.json"
 						}
 					]
 				}
@@ -76,24 +76,6 @@
 					],
 					"path": [
 						"upload"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "search/collections",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{url}}/search/collections",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"search",
-						"collections"
 					]
 				}
 			},
@@ -173,13 +155,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{url-2}}/logs/timeseries",
+					"raw": "{{url-2}}/logs/distribution",
 					"host": [
 						"{{url-2}}"
 					],
 					"path": [
 						"logs",
-						"timeseries"
+						"distribution"
 					]
 				}
 			},
@@ -191,13 +173,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{url-2}}/logs/timeseries",
+					"raw": "{{url-2}}/reports/generate",
 					"host": [
 						"{{url-2}}"
 					],
 					"path": [
-						"logs",
-						"timeseries"
+						"reports",
+						"generate"
 					]
 				}
 			},
@@ -209,13 +191,19 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{url-2}}/logs/timeseries",
+					"raw": "{{url-2}}/reports/download?filename=report_2025-03-06T20-34-03.952Z.pdf",
 					"host": [
 						"{{url-2}}"
 					],
 					"path": [
-						"logs",
-						"timeseries"
+						"reports",
+						"download"
+					],
+					"query": [
+						{
+							"key": "filename",
+							"value": "report_2025-03-06T20-34-03.952Z.pdf"
+						}
 					]
 				}
 			},
