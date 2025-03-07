@@ -46,7 +46,7 @@ Each service exposes Swagger documentation at `/api`:
 - Service B: http://localhost:3001/api
 
 ### Postman Collection
-You can also import endpoint collection to your Postman from this [file](./Comm-It.postman_collection.json)
+You can also import endpoint collection to your Postman from this [file](./comm-it.postman_collection.json)
 
 ## Getting Started
 
