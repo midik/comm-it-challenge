@@ -3,26 +3,28 @@ version: '3.8'
 services:
   # Build service for service-a
   service-a-build:
-    image: node:20-alpine
+    image: node:23-slim
     working_dir: /app
     volumes:
       - .:/app
     command: >
       sh -c "cd /app && 
-             apk add --no-cache python3 build-base &&
+             apt-get update && apt-get install -y python3 build-essential &&
+             rm -rf /var/lib/apt/lists/* &&
              cd /app/apps/service-a &&
-             npm install --legacy-peer-deps &&
+             npm install &&
              npm run build"
 
   # Build service for service-b
   service-b-build:
-    image: node:20-alpine
+    image: node:23-slim
     working_dir: /app
     volumes:
       - .:/app
     command: >
       sh -c "cd /app && 
-             apk add --no-cache python3 build-base &&
+             apt-get update && apt-get install -y python3 build-essential &&
+             rm -rf /var/lib/apt/lists/* &&
              cd /app/apps/service-b &&
-             npm install --legacy-peer-deps &&
+             npm install &&
              npm run build"

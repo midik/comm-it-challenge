@@ -1,10 +1,29 @@
 # Create base dependencies stage
-FROM node:20-alpine AS deps
+FROM node:23-slim AS deps-b
 
 WORKDIR /app
 
-# Install basic build tools and dependencies for @napi-rs/canvas
-RUN apk add --no-cache python3 make g++ cairo pango jpeg giflib pixman freetype fontconfig
+# Install basic build tools and dependencies for canvas
+#RUN apt install python3 make g++ cairo pango jpeg giflib pixman freetype fontconfig ttf-liberation font-noto ttf-ubuntu-font-family
+RUN sed -i '/^Components:/ s/$/ non-free/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && apt-get install -y \
+        pkg-config \
+        build-essential \
+        make \
+        g++ \
+        libpixman-1-dev \
+        libcairo2-dev \
+        libpango1.0-dev \
+        libjpeg-dev \
+        libgif-dev \
+        librsvg2-dev \
+        libfreetype6-dev \
+        libfontconfig1-dev \
+        fonts-liberation \
+        fonts-noto \
+        fonts-ubuntu \
+    && fc-cache -f \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json files
 COPY package.json ./
@@ -12,10 +31,13 @@ COPY apps/service-b/package.json ./apps/service-b/
 COPY libs/common/package.json ./libs/common/
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install && \
+    cd apps/service-b && \
+    npm install @napi-rs/canvas-linux-x64-gnu@0.1.68
+
 
 # Build stage for JS files
-FROM deps AS js-builder
+FROM deps-b AS js-builder-b
 
 WORKDIR /app
 
@@ -35,7 +57,7 @@ RUN npx tsc -p apps/service-b/tsconfig.build.json --noEmit false || true
 RUN mkdir -p apps/service-b/dist/apps/service-b/src libs/common/dist/libs/common/src
 
 # Production stage
-FROM node:20-alpine
+FROM node:23-slim
 
 WORKDIR /app
 
@@ -43,8 +65,8 @@ WORKDIR /app
 RUN mkdir -p reports
 
 # Copy only the compiled JavaScript
-COPY --from=js-builder /app/apps/service-b/dist ./apps/service-b/dist
-COPY --from=js-builder /app/libs/common/dist ./libs/common/dist
+COPY --from=js-builder-b /app/apps/service-b/dist ./apps/service-b/dist
+COPY --from=js-builder-b /app/libs/common/dist ./libs/common/dist
 
 # Copy package.json files for production
 COPY package.json ./
@@ -52,9 +74,37 @@ COPY apps/service-b/package.json ./apps/service-b/
 COPY libs/common/package.json ./libs/common/
 
 # Install production dependencies
-RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
-    npm install --production --no-optional --no-package-lock --force && \
-    npm install @napi-rs/canvas-linux-x64-musl --legacy-peer-deps
+RUN sed -i '/^Components:/ s/$/ non-free/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && apt-get install -y \
+        pkg-config \
+        build-essential \
+        make \
+        g++ \
+        libcairo2-dev \
+        libpango1.0-dev \
+        libjpeg-dev \
+        libgif-dev \
+        libpixman-1-dev \
+        libfreetype6-dev \
+        libfontconfig1-dev \
+        fonts-liberation \
+        fonts-noto \
+        fonts-ubuntu \
+        wget && \
+    npm install --production --no-optional --no-package-lock && \
+#    cd /app/apps/service-b/node_modules/@napi-rs && \
+#    mkdir -p canvas && \
+#    cd canvas && \
+#    # Download the prebuilt binary for x64 GNU
+#    wget -q https://registry.npmjs.org/@napi-rs/canvas-linux-x64-gnu/-/canvas-linux-x64-gnu-0.1.68.tgz && \
+#    tar -xzf canvas-linux-x64-gnu-0.1.68.tgz && \
+#    mv package/* . && \
+#    rm -rf package canvas-linux-x64-gnu-0.1.68.tgz && \
+    cd /app/apps/service-b && \
+    npm install --production --no-optional --no-package-lock
+
+# Create fonts directory
+RUN mkdir -p fonts
 
 # Set environment variables for service-b
 ENV NODE_ENV=production

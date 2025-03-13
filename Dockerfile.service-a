@@ -1,10 +1,10 @@
 # Create base dependencies stage
-FROM node:20-alpine AS deps
+FROM node:23-slim AS deps-a
 
 WORKDIR /app
 
 # Install basic build tools
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 pkg-config make g++ && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json files
 COPY package.json ./
@@ -12,10 +12,10 @@ COPY apps/service-a/package.json ./apps/service-a/
 COPY libs/common/package.json ./libs/common/
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Build stage for JS files
-FROM deps AS js-builder
+FROM deps-a AS js-builder-a
 
 WORKDIR /app
 
@@ -35,7 +35,7 @@ RUN npx tsc -p apps/service-a/tsconfig.build.json --noEmit false || true
 RUN mkdir -p apps/service-a/dist/apps/service-a/src libs/common/dist/libs/common/src
 
 # Production stage
-FROM node:20-alpine
+FROM node:23-slim
 
 WORKDIR /app
 
@@ -43,8 +43,8 @@ WORKDIR /app
 RUN mkdir -p data uploads
 
 # Copy only the compiled JavaScript
-COPY --from=js-builder /app/apps/service-a/dist ./apps/service-a/dist
-COPY --from=js-builder /app/libs/common/dist ./libs/common/dist
+COPY --from=js-builder-a /app/apps/service-a/dist ./apps/service-a/dist
+COPY --from=js-builder-a /app/libs/common/dist ./libs/common/dist
 
 # Copy package.json files for production
 COPY package.json ./
@@ -52,8 +52,7 @@ COPY apps/service-a/package.json ./apps/service-a/
 COPY libs/common/package.json ./libs/common/
 
 # Install production dependencies
-RUN apk add --no-cache cairo pango jpeg giflib pixman freetype fontconfig && \
-    npm install --production --no-optional --no-package-lock --force
+RUN npm install --production --no-optional --no-package-lock --force
 
 # Set environment variables for service-a
 ENV NODE_ENV=production

@@ -36,6 +36,8 @@ export class ReportsService {
         margin: 50,
         size: 'A4',
         layout: 'landscape',
+        font: 'Times-Roman',
+        lang: 'en-US'
       });
 
       // Pipe the PDF to a file
